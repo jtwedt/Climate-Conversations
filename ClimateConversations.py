@@ -1,1 +1,1 @@
-# THis is the stub program
+# This is the stub program
