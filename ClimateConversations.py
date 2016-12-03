@@ -1,5 +1,5 @@
 import pdb
-# THis is the stub program
+# This is the stub program
 
 # Load the events database RACHEL
 
