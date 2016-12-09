@@ -13,6 +13,7 @@ xlsx = pd.ExcelFile('firstHistoricClimateEvents.xlsx')
 df = xlsx.parse(xlsx.sheet_names[0])
 events = df.to_dict()
 nevents = len(events['start year'])
+earliestAge = 7
 #print events.keys()    # We may want to change some of the key names to be more efficient for indexing!
 
 delayinseconds = 1
@@ -111,7 +112,7 @@ for j in range(0,nrounds):
         while check:
             ind = randint(0,nevents-1)
             #check that the date is appropriate and index is unused
-            if birthyears[k] + 10 < events['start year'][ind]:
+            if birthyears[k] + earliestAge < events['start year'][ind]:
                 if ind not in ievents:
                     check = False
                     ievents.append(ind)
