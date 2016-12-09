@@ -1,14 +1,18 @@
 import pdb
 import pandas as pd
 import time
+import numpy as np
+from random import randint
 
-# This is the stub program
+
+
 
 # Load the events database RACHEL
 
 xlsx = pd.ExcelFile('firstHistoricClimateEvents.xlsx')
 df = xlsx.parse(xlsx.sheet_names[0])
 events = df.to_dict()
+nevents = len(events['start year'])
 #print events.keys()    # We may want to change some of the key names to be more efficient for indexing!
 
 # Get input from user (name, birthdate, number of rounds) JUDY
@@ -28,11 +32,23 @@ for i in range(nplayers):
     names.append(thisname)
     birthyears.append(thisage)
 
+# Each user gets a set of indices for the events
+ievents = []
+
 # Loop over each user
 next = []
 for j in range(0,nrounds):
     for k in range(0,nplayers):
         # Determine the filter and selection of events
+        check = True
+        while check:
+            ind = randint(0,nevents)
+            #check that the date is appropriate and index is unused
+            if birthyears[k] + 10 < events['start year'][ind]:
+                if ind not in ievents:
+                    check = False
+                    ievents.append(ind)
+
         # display event, ask questions
         print('here is your question')
         pdb.set_trace()
