@@ -100,13 +100,14 @@ ievents = []
 
 os.system('clear')
 
-
+maxchecks = nevents*2
 # Loop over each user
 next = []
 for j in range(0,nrounds):
     for k in range(0,nplayers):
         # Determine the filter and selection of events
         check = True
+        itcheck = 0
         while check:
             ind = randint(0,nevents-1)
             #check that the date is appropriate and index is unused
@@ -114,6 +115,9 @@ for j in range(0,nrounds):
                 if ind not in ievents:
                     check = False
                     ievents.append(ind)
+            itcheck += 1
+            if itcheck > maxchecks:
+                exit('I\'m sorry, we\'ve run out of events for your group!')
 
         # display event, ask questions
         iyear = events['start year'][ind] - birthyears[k]
