@@ -35,7 +35,7 @@ for j in range(0,nrounds):
         # Determine the filter and selection of events
         # display event, ask questions
         print('here is your question')
-
+        pdb.set_trace()
         # Have count-down time before prompting
         time.sleep(delayinseconds)
         raw_input("You've been talking about this question for " + str(delayinseconds / 60) + " minutes, press enter when you are ready to move on to the next question?")
