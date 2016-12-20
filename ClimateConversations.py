@@ -73,8 +73,12 @@ test  = input('Is this a test run? 1= yes, 0 = no ')
 needgame = True
 while needgame:
     game  = raw_input('Would you like to play for points? yes/no? ')
-    if game in ('yes','Yes','1',1,'no','No'):
+    if game in ('yes','Yes'):
         needgame = False
+        isgame = True
+    elif game in ('no','No'):
+        needgame = False
+        isgame = False
     else:
         print('Sorry, I didn\'t understand that, please answer yes or no')
 
