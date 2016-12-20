@@ -78,13 +78,12 @@ def getgameinfo():
         if game in ('yes','Yes'):
             needgame = False
             isgame = True
-            points = 0  # initialize points
         elif game in ('no','No'):
             needgame = False
             isgame = False
         else:
             print('Sorry, I didn\'t understand that, please answer yes or no')
-    return(test,isgame,points)
+    return(test,isgame)
 
 
 def getevent(k,ievents):
@@ -109,7 +108,7 @@ print('Welcome! Lets get a little information before we start the conversation.'
 
 needinfo = True
 while needinfo:
-    test,isgame,points = getgameinfo()
+    test,isgame = getgameinfo()
     nplayers,nrounds,names,birthyears = getplayerinfo()
     # Print out a summary of players and dates of birth
     os.system('clear')
@@ -161,8 +160,9 @@ maxchecks = nevents*2
 # Loop over each user
 if isgame:
     playerInds = []   # initialize list
+    points = 0  # initialize points
     for j in range(0,nrounds):
-        for k in range(0,nplayers): # need to separate out the points version so it doesn't go through each in turn!
+        for k in range(0,nplayers): 
             playerInds.append(k)
     # now randomise this list
     shuffle(playerInds)
@@ -205,8 +205,10 @@ if isgame:
             else:
                 print('Please enter the name of one of the players: ' + ', '.join(names))
 
-    os.system('clear')
-
+        os.system('clear')
+    print ('You have a total of ' + str(points) + ' out of a possible ' + str(nrounds * nplayers) + ' points')
+    if (float(points)/float(nrounds + nplayers) > 0.5):
+        print('Congratulations!')
 
 else:
 
@@ -224,8 +226,4 @@ else:
             raw_input('Press enter when you are ready to move on to the next question?')
             os.system('clear')
 
-if isgame:
-    print ('You have a total of ' + str(points) + ' out of a possible ' + str(nrounds * nplayers) + ' points')
-    if (float(points)/float(nrounds + nplayers) > 0.5):
-        print('Congratulations!')
 
