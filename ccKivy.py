@@ -1,3 +1,9 @@
+# 
+# Code snippet to test putting boxes, text etc onto a background image
+#
+# Requires cc.kv and background.png
+#
+
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty,\
