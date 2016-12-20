@@ -16,6 +16,27 @@ nevents = len(events['start year'])
 earliestAge = 7
 #print events.keys()    # We may want to change some of the key names to be more efficient for indexing!
 
+
+#load temperature and sea ice datasets
+temperatureFile = 'GLB.Ts+dSST.csv' # from  http://data.giss.nasa.gov/gistemp/
+iceFile  = 'N_09_seaicearea_v2.txt' # from https://nsidc.org/data/seaice_index/archives.html
+#process the temperature timeseries
+yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skiprows = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
+#compute the decadal average for temperature:
+decadalT = np.reshape(AnnMeanT[:130], [13,10])
+decadalT  = np.nanmean(decadalT, axis = 1)
+decadalT = [float("{0:2f}".format(decadalT[i])) for i in range(len(decadalT))]
+decadalT = np.asarray(decadalT)
+#compute the 1881-1901 average
+tempClimo = np.mean(AnnMeanT[:20])
+
+#process the sea ice time series
+yrIce, extent, area = np.genfromtxt(iceFile, unpack = True, usecols = (0,4,5), skip_footer = 14, skip_header = 1)
+iceExtentClimo = np.mean(extent[:20]) #1979-1999 average
+iceAreaClimo  = np.mean(area[:20]) 
+
+
+
 delayinseconds = 1
 
 # set up lists and global variables
@@ -102,6 +123,12 @@ ievents = []
 os.system('clear')
 
 maxchecks = nevents*2
+
+#let's try adding the climate indices before entering the loop!
+# if there's not at least a 20 year gap in age, then use an historical reference point to associate to the first date. 
+#  i.e. Washington statehood, Gold Rush, Railroads, Hindenberg, women's suffrage, Spruce Goose, World's fair in Seattle, issaquah mining boom
+# add closing of washington mines
+
 # Loop over each user
 next = []
 for j in range(0,nrounds):
@@ -128,4 +155,9 @@ for j in range(0,nrounds):
         time.sleep(delayinseconds)
         raw_input('Press enter when you are ready to move on to the next question?')
         os.system('clear')
+
+# At the end, talk about the growth in renerable energy
+# add the time series of CFC's to discuss the success of the montreal protocol
+# add time series of sulfate particles so discuss the success of the clean air act
+
 
