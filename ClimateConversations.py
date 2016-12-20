@@ -70,6 +70,13 @@ def getplayerinfo():
 # Main program
 print('Welcome! Lets get a little information before we start the conversation.')
 test  = input('Is this a test run? 1= yes, 0 = no ')
+needgame = True
+while needgame:
+    game  = raw_input('Would you like to play for points? yes/no? ')
+    if game in ('yes','Yes','1',1,'no','No'):
+        needgame = False
+    else:
+        print('Sorry, I didn\'t understand that, please answer yes or no')
 
 needinfo = True
 while needinfo:
