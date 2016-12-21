@@ -29,7 +29,6 @@ decadalT = [float("{0:2f}".format(decadalT[i])) for i in range(len(decadalT))]
 decadalT = np.asarray(decadalT)
 #compute the 1881-1901 average
 tempClimo = np.mean(AnnMeanT[:20])
-
 #process the sea ice time series
 yrIce, extent, area = np.genfromtxt(iceFile, unpack = True, usecols = (0,4,5), skip_footer = 14, skip_header = 1)
 iceExtentClimo = np.mean(extent[:20]) #1979-1999 average
@@ -177,9 +176,26 @@ os.system('clear')
 
 maxchecks = nevents*2
 
-#TODO:  add the climate indice events  before entering the loop!
-# if there's not at least a 20 year gap in age, then use an historical reference point to associate to the first date. 
+#TODO:  improve use of the climate indices
+# if there's not at least a 20 year gap in age, then maybe an historical reference point to associate to the first date. 
 #  i.e. Washington statehood, Gold Rush, Railroads, Hindenberg, women's suffrage, Spruce Goose, World's fair in Seattle, issaquah mining boom, closing of washington mines 
+ageGap = max(birthyears) - min(birthyears)
+iOldest = np.argmin(birthyears)
+iYoungest = np.argmax(birthyears)
+print('Before starting the rounds, lets reflect on a few big-picture measurements of Earth')
+print()
+#Temperature change
+if ageGap >=20:
+    TempChange = (AnnMeanT[yrTemp == birthyears[iOldest]] - AnnMeanT[yrTemp == birthyears[iYoungest]])*9/5
+    print('Between  ' + names[iOldest] + ' and ' + names[iYoungest] + 's birthyears, global mean temperature rose by '+ str(TempChange) + 'degrees Fahrenheit.')
+else:
+    TempChange = (AnnMeanT[yrTemp == birthyears[iYoungest]] - AnnMeanT[0])*9/5
+    print('When ' + names[iYoungest] + ' was born, the average annual temperature of the earths surface had risen ' + str(TempChange) + ' degrees fahrenheit above its 1880 temperature, when the US census was just over 50 million people.')
+#Sea Ice Change    
+print
+iceLow2012 = min(area)/iceAreaClimo*100
+print('When ' + names[iOldest] + ' was '+ str(2012 - min(birthyears)) + ', the September arctic sea ice area dropped to a record low of' + str(iceLow2012) +  ' percent of its normal area.') 
+pdb.set_trace()
 
 # Loop over each user
 if isgame:
@@ -201,7 +217,7 @@ if isgame:
 
         # display event, ask questions
         iyear = events['start year'][ind] - birthyears[k]
-        print('In the year one player turned ' + str(iyear) + ' ' + events['description'][ind])
+        print('In the year one player turned ' + str(iyear) + ', ' + events['description'][ind])
         print('What do you remember from the year you turned ' + str(iyear) + '?')
         print(' ')
         time.sleep(delayinseconds)
@@ -213,6 +229,7 @@ if isgame:
                 needanswer = False
                 if answer.lower() == names[k].lower():
                     print('Correct, it was ' + names[k])
+                    time.sleep(delayinseconds)
                     points += 1
                 else:
                     if nplayers > 2:
@@ -220,12 +237,14 @@ if isgame:
                         answer = raw_input('Who is your second guess for who this question is talking about? ')
                         if answer.lower() == names[k].lower():
                             print('Correct, it was ' + names[k])
+                            time.sleep(delayinseconds)
                             points += 0.5
                         else:
                             print('Sorry, it wasn\'t ' + answer + '; it was ' + names[k])
-
+                            time.sleep(delayinseconds)
                     else:   # if only 2 players, don't allow a second guess!
                             print('Sorry, it wasn\'t ' + answer + '; it was ' + names[k])
+                            time.sleep(delayinseconds)                            
             else:
                 print('Please enter the name of one of the players: ' + ', '.join(names))
 
