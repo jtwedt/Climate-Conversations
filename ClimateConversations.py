@@ -21,7 +21,7 @@ earliestAge = 7
 temperatureFile = 'GLB.Ts+dSST.csv' # from  http://data.giss.nasa.gov/gistemp/
 iceFile  = 'N_09_seaicearea_v2.txt' # from https://nsidc.org/data/seaice_index/archives.html
 #process the temperature timeseries
-yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skiprows = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
+yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skip_header = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
 #compute the decadal average for temperature:
 decadalT = np.reshape(AnnMeanT[:130], [13,10])
 decadalT  = np.nanmean(decadalT, axis = 1)
@@ -58,7 +58,7 @@ def getplayerinfo():
         names.append('Katie')
         birthyears.append(1982)
         birthyears.append(1986)
-        birthyears.append(1987)
+        birthyears.append(1988)
         birthyears.append(1992)
 
     else:
