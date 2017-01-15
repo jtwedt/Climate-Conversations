@@ -261,8 +261,20 @@ else:
             # Determine the filter and selection of events
             ind = getevent(k,ievents)
             # display event, ask questions
+            year = events['start year'][ind]
             iyear = events['start year'][ind] - birthyears[k]
             print('In the year ' + names[k] + ' turned ' + str(iyear) + ' ' + events['description'][ind])
+            print(' ')
+            # Have count-down time before asking question
+            time.sleep(delayinseconds)
+            questions = [ 'Do you remember hearing about this in the news?', \
+            			  'Where were you in the year {}?'.format(year), \
+            			  'Were there any special weather events where you lived in {}?'.format(year), \
+            			  'Have you heard anything new about this type of event recently?', \
+            			  'Who in the world does this event matter to most?', \
+            			  'Did this impact any of your personal lives?']
+            qind = randint(0,len(questions)-1)
+            print(questions[qind])
             print(' ')
             # Have count-down time before prompting
             time.sleep(delayinseconds)
