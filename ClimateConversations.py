@@ -21,7 +21,7 @@ earliestAge = 7
 temperatureFile = 'GLB.Ts+dSST.csv' # from  http://data.giss.nasa.gov/gistemp/
 iceFile  = 'N_09_seaicearea_v2.txt' # from https://nsidc.org/data/seaice_index/archives.html
 #process the temperature timeseries
-yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skiprows = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
+yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skip_header = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
 #compute the decadal average for temperature:
 decadalT = np.reshape(AnnMeanT[:130], [13,10])
 decadalT  = np.nanmean(decadalT, axis = 1)
@@ -58,25 +58,25 @@ def getplayerinfo():
         names.append('Katie')
         birthyears.append(1982)
         birthyears.append(1986)
-        birthyears.append(1987)
+        birthyears.append(1988)
         birthyears.append(1992)
 
     else:
-        nplayers  = input('How many people are in the conversation? ')
-        nrounds = input('How many rounds would you like to play? ')
+        nplayers  = int(input('How many people are in the conversation? '))
+        nrounds = int(input('How many rounds would you like to play? '))
 
         # Work out how long to delay between questions
         delayinseconds = 1
 
         indices = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th']
         for i in range(nplayers):
-            thisname = raw_input('Please enter the ' + indices[i] + ' players name: ')
+            thisname = input('Please enter the ' + indices[i] + ' players name: ')
             names.append(thisname)
             
 
             needage = True
             while needage:
-                thisage = raw_input('Please enter ' + thisname + '\'s year of birth: ')
+                thisage = input('Please enter ' + thisname + '\'s year of birth: ')
 
                 if is_number(thisage):
                     while (int(thisage) < 1880 or int(thisage) > datetime.datetime.now().year):
@@ -89,10 +89,10 @@ def getplayerinfo():
     return(nplayers,nrounds,names,birthyears)   # return these variables so they are globally known
 
 def getgameinfo():
-    test  = input('Is this a test run? 1= yes, 0 = no ')
+    test  = int(input('Is this a test run? 1= yes, 0 = no '))
     needgame = True
     while needgame:
-        game  = raw_input('Would you like to play for points? yes/no? ')
+        game  = input('Would you like to play for points? yes/no? ')
         if game in ('yes','Yes'):
             needgame = False
             isgame = True
@@ -141,21 +141,21 @@ while needinfo:
     else:
         print('You want to play without scoring')
     print(' ')
-    correctinput = raw_input('Is this correct? Yes/No? ')
+    correctinput = input('Is this correct? Yes/No? ')
 
     while correctinput not in ['Yes','yes']:
         if correctinput in ['No','no']:
             print('Ok, let\'s try again')
             break
         else:
-            correctinput = raw_input('I\'m sorry, I didn\'t understand that. Is the game information correct, please enter Yes or No ')
+            correctinput = input('I\'m sorry, I didn\'t understand that. Is the game information correct, please enter Yes or No ')
 
-    print birthyears
-    print list(set(birthyears))
+    print(birthyears)
+    print(list(set(birthyears)))
     if collections.Counter(list(set(birthyears))) != collections.Counter(birthyears) and isgame:    # if two people have same birth year, can't play as game
         needcheck = True
         while needcheck:
-            check = raw_input('Sorry, you have two people in your group born in the same year, you cannot play for points! Press 0 to restart with a different team, and 1 to continue playing without scoring ')
+            check = input('Sorry, you have two people in your group born in the same year, you cannot play for points! Press 0 to restart with a different team, and 1 to continue playing without scoring ')
             if check == '0':
                 needcheck = False
             elif check == '1':
@@ -168,7 +168,7 @@ while needinfo:
     else:
         needinfo = False
 
-    print needinfo
+    print(needinfo)
 
 ievents = []
 
@@ -190,11 +190,11 @@ if ageGap >=20:
     print('Between  ' + names[iOldest] + ' and ' + names[iYoungest] + 's birthyears, global mean temperature rose by '+ str(TempChange) + 'degrees Fahrenheit.')
 else:
     TempChange = (AnnMeanT[yrTemp == birthyears[iYoungest]] - AnnMeanT[0])*9/5
-    print('When ' + names[iYoungest] + ' was born, the average annual temperature of the earths surface had risen ' + str(TempChange) + ' degrees fahrenheit above its 1880 temperature, when the US census was just over 50 million people.')
+    print('When ' + names[iYoungest] + ' was born, the average annual temperature of the earths surface had risen ' + str(TempChange) + ' degrees Fahrenheit above its 1880 temperature, when the US census was just over 50 million people.')
 #Sea Ice Change    
 print
 iceLow2012 = min(area)/iceAreaClimo*100
-print('When ' + names[iOldest] + ' was '+ str(2012 - min(birthyears)) + ', the September arctic sea ice area dropped to a record low of' + str(iceLow2012) +  ' percent of its normal area.') 
+print('When ' + names[iOldest] + ' was '+ str(2012 - min(birthyears)) + ', the September arctic sea ice area dropped to a record low of ' + str(round(iceLow2012,1)) +  '% of its normal area.') 
 pdb.set_trace()
 
 # Loop over each user
@@ -206,7 +206,7 @@ if isgame:
             playerInds.append(k)
     # now randomise this list
     shuffle(playerInds)
-    print playerInds
+    print(playerInds)
     nquestions = len(playerInds)
     if nquestions != nplayers * nrounds:
         exit('something went terribly wrong with the player list!')
@@ -224,7 +224,7 @@ if isgame:
         needanswer = True
         
         while needanswer:
-            answer = raw_input('Who do you think this question is talking about? ')
+            answer = input('Who do you think this question is talking about? ')
             if answer.lower() in [x.lower() for x in names]:    # case insensitive check
                 needanswer = False
                 if answer.lower() == names[k].lower():
@@ -234,7 +234,7 @@ if isgame:
                 else:
                     if nplayers > 2:
                         print('Sorry, it wasn\'t ' + answer + ', have another guess for half a point' )
-                        answer = raw_input('Who is your second guess for who this question is talking about? ')
+                        answer = input('Who is your second guess for who this question is talking about? ')
                         if answer.lower() == names[k].lower():
                             print('Correct, it was ' + names[k])
                             time.sleep(delayinseconds)
@@ -261,12 +261,24 @@ else:
             # Determine the filter and selection of events
             ind = getevent(k,ievents)
             # display event, ask questions
+            year = events['start year'][ind]
             iyear = events['start year'][ind] - birthyears[k]
             print('In the year ' + names[k] + ' turned ' + str(iyear) + ' ' + events['description'][ind])
             print(' ')
+            # Have count-down time before asking question
+            time.sleep(delayinseconds)
+            questions = [ 'Do you remember hearing about this in the news?', \
+            			  'Where were you in the year {}?'.format(year), \
+            			  'Were there any special weather events where you lived in {}?'.format(year), \
+            			  'Have you heard anything new about this type of event recently?', \
+            			  'Who in the world does this event matter to most?', \
+            			  'Did this impact any of your personal lives?']
+            qind = randint(0,len(questions)-1)
+            print(questions[qind])
+            print(' ')
             # Have count-down time before prompting
             time.sleep(delayinseconds)
-            raw_input('Press enter when you are ready to move on to the next question?')
+            input('Press enter when you are ready to move on to the next question.')
             os.system('clear')
 
 
