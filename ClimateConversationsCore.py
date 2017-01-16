@@ -92,7 +92,7 @@ class Conversation():
 
         # Return the question
         q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
-        return q
+        return q_idx, q
 
        
     def increment_player(self):
