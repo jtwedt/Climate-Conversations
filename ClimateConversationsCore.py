@@ -38,11 +38,26 @@ class Conversation():
     Load event spreadsheet from an excel file. 
     #TODO write format this should be in here
     Input: filename of excel spreadsheet
-    Output: dictionary of events (keys: ___, values: ___)
+    Output: dictionary of events (keys: event id, values: event information)
     '''
     def load_events_from_excel(self, events_file):
         xlsx = pd.ExcelFile(events_file)
         df = xlsx.parse(xlsx.sheet_names[0])
+        events = df.to_dict()
+        return events
+
+    '''
+    Load event spreadsheet directly from google drive.
+    Input: gdrive key
+    Output: dictionary of events (keys: event id, values: event information)
+      The gdrive_keyis the code in the URL after ../spreadsheets/d/
+      Example: https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060
+      The key for the above url would be "1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg"
+      You can get this via the "Share" button -> "get shareable link"
+    '''
+    def load_events_from_gdrive(self, gdrive_key):
+        gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
+        df = pd.read_csv(gdrive_url)
         events = df.to_dict()
         return events
 
