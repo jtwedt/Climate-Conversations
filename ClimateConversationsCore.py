@@ -94,6 +94,23 @@ class Conversation():
         q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
         return q_idx, q
 
+    def check_for_extra_information(self, event_num):
+        try:
+            q_info = self.events['additional description'][event_num]
+        except: 
+            return None
+        if q_info == "": 
+            return None
+        else: 
+            return q_info
+
+    def check_for_image(self, event_num):
+        img_file = self.events['image'][event_num]
+
+        if os.path.isfile(img_file):
+            return img_file
+        else:
+            return None
        
     def increment_player(self):
         p_idx = self.current_player_idx + 1
