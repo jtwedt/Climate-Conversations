@@ -62,20 +62,20 @@ class Conversation():
     # TODO: As more question types are added, split this into multiple functions
     #         Ideally, this would randomly choose the question type and question,
     #         and then maybe something else would format it.
-    def get_next_question(self):
+    def get_next_question(self, player):
         # Figure out which player to ask
-        p = self.get_current_player()
-        print self.min_q_age
-        if p is None:
-            return None
+        # p = self.get_current_player()
+        # print self.min_q_age
+        # if p is None:
+        #     return None
 
         # Randomly choose a Q, but make sure:
         #   a) we haven't already asked the player
         #   b) the date of the event makes sense given their age
         q_idx = randint(0, self.n_events-1)
         n_checks = 1
-        while (q_idx in p.asked_events \
-           or int(self.events['start year'][q_idx]) - p.birth_year < self.min_q_age) \
+        while (q_idx in player.asked_events \
+           or int(self.events['start year'][q_idx]) - player.birth_year < self.min_q_age) \
            and n_checks < self.max_checks:
             q_idx = randint(0, self.n_events-1)
             n_checks += 1
@@ -83,15 +83,15 @@ class Conversation():
         if n_checks >= self.max_checks:
             return None
 
-        p.asked_events.append(q_idx)
+        player.asked_events.append(q_idx)
 
         q_desc = self.events['description'][q_idx]
         #print "DEBUG: ", q_idx, q_desc
         q_desc = q_desc.encode('utf-8').strip()
-        q_age = p.get_age_in_year(int(self.events['start year'][q_idx]))
+        q_age = player.get_age_in_year(int(self.events['start year'][q_idx]))
 
         # Return the question
-        q = "In the year " + p.name + " turned " + str(q_age) + ", " + q_desc
+        q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
         return q
 
        

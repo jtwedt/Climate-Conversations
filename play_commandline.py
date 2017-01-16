@@ -59,7 +59,7 @@ def load_questions(game, players, n_rounds):
     for round_i in range(n_rounds):
         for player in players:
             p = game.get_current_player()
-            q = game.get_next_question()
+            q = game.get_next_question(p)
             if q is None:
                 print "Warning: out of questions for your group and the number of rounds. Returning what we have so far!"
                 return questions
