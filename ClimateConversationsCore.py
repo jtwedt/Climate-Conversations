@@ -15,6 +15,7 @@ class Conversation():
     rounds_left = 0
     current_player_idx = 0
     max_checks = 100
+    asked_events = []
 
     def __init__(self, 
                  n_rounds=5,
@@ -70,11 +71,11 @@ class Conversation():
         #     return None
 
         # Randomly choose a Q, but make sure:
-        #   a) we haven't already asked the player
+        #   a) we haven't already asked the question in this game
         #   b) the date of the event makes sense given their age
         q_idx = randint(0, self.n_events-1)
         n_checks = 1
-        while (q_idx in player.asked_events \
+        while (q_idx in self.asked_events \
            or int(self.events['start year'][q_idx]) - player.birth_year < self.min_q_age) \
            and n_checks < self.max_checks:
             q_idx = randint(0, self.n_events-1)
@@ -84,6 +85,7 @@ class Conversation():
             return None
 
         player.asked_events.append(q_idx)
+        self.asked_events.append(q_idx)
 
         q_desc = self.events['description'][q_idx]
         #print "DEBUG: ", q_idx, q_desc
