@@ -15,6 +15,7 @@ class Conversation():
     rounds_left = 0
     current_player_idx = 0
     max_checks = 100
+    asked_events = []
 
     def __init__(self, 
                  n_rounds=5,
@@ -37,11 +38,26 @@ class Conversation():
     Load event spreadsheet from an excel file. 
     #TODO write format this should be in here
     Input: filename of excel spreadsheet
-    Output: dictionary of events (keys: ___, values: ___)
+    Output: dictionary of events (keys: event id, values: event information)
     '''
     def load_events_from_excel(self, events_file):
         xlsx = pd.ExcelFile(events_file)
         df = xlsx.parse(xlsx.sheet_names[0])
+        events = df.to_dict()
+        return events
+
+    '''
+    Load event spreadsheet directly from google drive.
+    Input: gdrive key
+    Output: dictionary of events (keys: event id, values: event information)
+      The gdrive_keyis the code in the URL after ../spreadsheets/d/
+      Example: https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060
+      The key for the above url would be "1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg"
+      You can get this via the "Share" button -> "get shareable link"
+    '''
+    def load_events_from_gdrive(self, gdrive_key):
+        gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
+        df = pd.read_csv(gdrive_url)
         events = df.to_dict()
         return events
 
@@ -62,20 +78,21 @@ class Conversation():
     # TODO: As more question types are added, split this into multiple functions
     #         Ideally, this would randomly choose the question type and question,
     #         and then maybe something else would format it.
-    def get_next_question(self):
+
+    def get_next_question(self, player):
         # Figure out which player to ask
-        p = self.get_current_player()
-        print self.min_q_age
-        if p is None:
-            return None
+        # p = self.get_current_player()
+        # print self.min_q_age
+        # if p is None:
+        #     return None
 
         # Randomly choose a Q, but make sure:
-        #   a) we haven't already asked the player
+        #   a) we haven't already asked the question in this game
         #   b) the date of the event makes sense given their age
         q_idx = randint(0, self.n_events-1)
         n_checks = 1
-        while (q_idx in p.asked_events \
-           or int(self.events['start year'][q_idx]) - p.birth_year < self.min_q_age) \
+        while (q_idx in self.asked_events \
+           or int(self.events['start year'][q_idx]) - player.birth_year < self.min_q_age) \
            and n_checks < self.max_checks:
             q_idx = randint(0, self.n_events-1)
             n_checks += 1
@@ -83,16 +100,17 @@ class Conversation():
         if n_checks >= self.max_checks:
             return None
 
-        p.asked_events.append(q_idx)
+        player.asked_events.append(q_idx)
+        self.asked_events.append(q_idx)
 
         q_desc = self.events['description'][q_idx]
         #print "DEBUG: ", q_idx, q_desc
         q_desc = q_desc.encode('utf-8').strip()
-        q_age = p.get_age_in_year(int(self.events['start year'][q_idx]))
+        q_age = player.get_age_in_year(int(self.events['start year'][q_idx]))
 
         # Return the question
-        q = "In the year " + p.name + " turned " + str(q_age) + ", " + q_desc
-        return q
+        q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
+        return q_idx, q
 
     def check_for_extra_information(self, event_num):
         try:
@@ -102,8 +120,15 @@ class Conversation():
         if q_info == "": 
             return None
         else: 
-        pass
+            return q_info
 
+    def check_for_image(self, event_num):
+        img_file = self.events['image'][event_num]
+
+        if os.path.isfile(img_file):
+            return img_file
+        else:
+            return None
        
     def increment_player(self):
         p_idx = self.current_player_idx + 1

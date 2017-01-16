@@ -9,7 +9,7 @@ import datetime
 import collections
 # Load the events database 
 
-xlsx = pd.ExcelFile('firstHistoricClimateEvents.xlsx')
+xlsx = pd.ExcelFile('data/firstHistoricClimateEvents.xlsx')
 df = xlsx.parse(xlsx.sheet_names[0])
 events = df.to_dict()
 nevents = len(events['start year'])
