@@ -27,6 +27,7 @@ class Conversation():
         self.rounds_left = n_rounds
         self.min_age_to_play = min_age_to_play
         self.events = self.load_events_from_excel(events_file)
+        self.events = self.load_events_from_gdrive("1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg")
         self.n_events = len(self.events['description'])
         if players is not None:
             self.players = players
@@ -57,7 +58,7 @@ class Conversation():
     '''
     def load_events_from_gdrive(self, gdrive_key):
         gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
-        df = pd.read_csv(gdrive_url)
+        df = pd.read_csv(gdrive_url, encoding='utf-8')
         events = df.to_dict()
         return events
 
