@@ -112,7 +112,7 @@ class Conversation():
         q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
         return q_idx, q
 
-    def check_for_extra_information(self, event_num):
+    def check_for_extra_info(self, event_num):
         try:
             q_info = self.events['additional description'][event_num]
         except: 
