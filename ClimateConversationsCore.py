@@ -27,7 +27,7 @@ class Conversation():
         self.rounds_left = n_rounds
         self.min_age_to_play = min_age_to_play
         self.events = self.load_events_from_excel(events_file)
-        self.events = self.load_events_from_gdrive("1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg")
+        #self.events = self.load_events_from_gdrive("1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg")
         self.n_events = len(self.events['description'])
         if players is not None:
             self.players = players
