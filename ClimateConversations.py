@@ -18,8 +18,8 @@ earliestAge = 7
 
 
 #load temperature and sea ice datasets
-temperatureFile = 'GLB.Ts+dSST.csv' # from  http://data.giss.nasa.gov/gistemp/
-iceFile  = 'N_09_seaicearea_v2.txt' # from https://nsidc.org/data/seaice_index/archives.html
+temperatureFile = 'data/GLB.Ts+dSST.csv' # from  http://data.giss.nasa.gov/gistemp/
+iceFile  = 'data/N_09_seaicearea_v2.txt' # from https://nsidc.org/data/seaice_index/archives.html
 #process the temperature timeseries
 yrTemp, AnnMeanT = np.genfromtxt(temperatureFile, unpack = True, skip_header = 3, delimiter = ',', usecols = (0,13), skip_footer = 1)
 #compute the decadal average for temperature:
