@@ -1,54 +1,6 @@
 #: import ListItemButton kivy.uix.listview.ListItemButton
 #: import ListAdapter kivy.adapters.listadapter.ListAdapter
-#: import main main
-#: include GameSetup.kv
-#: include QA.kv
-
-<IntroUI>:
-	orientation: "vertical"
-	padding: 100
-	spacing: 30
-	begin_game_button: begin_game_button
-	about_game_button: about_game_button
-	BoxLayout:
-		Label:
-			text: "Climate Conversations"
-			font_size: 40
-	BoxLayout:
-		Button:
-			id: begin_game_button
-			text: "Begin a game"
-			size_y: "100dp"
-			font_size: 25
-			on_press: root.begin_game()
-	BoxLayout:
-		Button:
-			id: about_game_button
-			text: "About the game"
-			size_y: "50dp"
-			font_size: 25
-			on_press: root.about_game()
-
-
-<AboutGameUI>:
-	orientation: "vertical"
-	padding: 50
-	spacing: 30
-	BoxLayout:
-		Label:
-			text: "About Climate Conversations"
-			font_size: 20
-	BoxLayout:
-		Label:
-			text_size: self.size
-			text: "some info here\n\n\n\n     probably a bit longer \nInfo about who made the game, which pieces, and other acknowledgements. Trying to see if I can make it do a line break or wrap or something"
-	BoxLayout:
-		Button:
-			id: back_button
-			text: "Back"
-			size_y: "50dp"
-			size_hint_x: .5
-			on_press: root.back_to_intro()
-
-
-
+#: import StartScreen StartScreen
+#: include ui/StartScreen.kv
+#: include ui/GameSetup.kv
+#: include ui/QA.kv

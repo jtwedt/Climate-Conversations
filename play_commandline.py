@@ -1,6 +1,9 @@
+import sys
 import os
+sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.getcwd() + "/resources")
+sys.path.insert(0, os.getcwd() + "/ui") 
 import time
-
 from utils import *
 from ClimateConversationsCore import Conversation, Player
 
