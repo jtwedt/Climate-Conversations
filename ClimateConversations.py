@@ -62,25 +62,25 @@ def getplayerinfo():
         birthyears.append(1992)
 
     else:
-        nplayers  = int(input('How many people are in the conversation? '))
-        nrounds = int(input('How many rounds would you like to play? '))
+        nplayers  = int(raw_input('How many people are in the conversation? '))
+        nrounds = int(raw_input('How many rounds would you like to play? '))
 
         # Work out how long to delay between questions
         delayinseconds = 1
 
         indices = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th']
         for i in range(nplayers):
-            thisname = input('Please enter the ' + indices[i] + ' players name: ')
+            thisname = raw_input('Please enter the ' + indices[i] + ' players name: ')
             names.append(thisname)
             
 
             needage = True
             while needage:
-                thisage = input('Please enter ' + thisname + '\'s year of birth: ')
+                thisage = raw_input('Please enter ' + thisname + '\'s year of birth: ')
 
                 if is_number(thisage):
                     while (int(thisage) < 1880 or int(thisage) > datetime.datetime.now().year):
-                        thisage = input('You are either over 130 years old, or haven\'t been born yet. Please re-enter ' + thisname + '\'s players year of birth: ')
+                        thisage = raw_input('You are either over 130 years old, or haven\'t been born yet. Please re-enter ' + thisname + '\'s players year of birth: ')
                     birthyears.append(int(thisage))
                     needage = False
                 else:
@@ -89,10 +89,10 @@ def getplayerinfo():
     return(nplayers,nrounds,names,birthyears)   # return these variables so they are globally known
 
 def getgameinfo():
-    test  = int(input('Is this a test run? 1= yes, 0 = no '))
+    test  = int(raw_input('Is this a test run? 1= yes, 0 = no '))
     needgame = True
     while needgame:
-        game  = input('Would you like to play for points? yes/no? ')
+        game  = raw_input('Would you like to play for points? yes/no? ')
         if game in ('yes','Yes'):
             needgame = False
             isgame = True
@@ -141,21 +141,21 @@ while needinfo:
     else:
         print('You want to play without scoring')
     print(' ')
-    correctinput = input('Is this correct? Yes/No? ')
+    correctinput = raw_input('Is this correct? Yes/No? ')
 
     while correctinput not in ['Yes','yes']:
         if correctinput in ['No','no']:
             print('Ok, let\'s try again')
             break
         else:
-            correctinput = input('I\'m sorry, I didn\'t understand that. Is the game information correct, please enter Yes or No ')
+            correctinput = raw_input('I\'m sorry, I didn\'t understand that. Is the game information correct, please enter Yes or No ')
 
     print(birthyears)
     print(list(set(birthyears)))
     if collections.Counter(list(set(birthyears))) != collections.Counter(birthyears) and isgame:    # if two people have same birth year, can't play as game
         needcheck = True
         while needcheck:
-            check = input('Sorry, you have two people in your group born in the same year, you cannot play for points! Press 0 to restart with a different team, and 1 to continue playing without scoring ')
+            check = raw_input('Sorry, you have two people in your group born in the same year, you cannot play for points! Press 0 to restart with a different team, and 1 to continue playing without scoring ')
             if check == '0':
                 needcheck = False
             elif check == '1':
@@ -224,7 +224,7 @@ if isgame:
         needanswer = True
         
         while needanswer:
-            answer = input('Who do you think this question is talking about? ')
+            answer = raw_input('Who do you think this question is talking about? ')
             if answer.lower() in [x.lower() for x in names]:    # case insensitive check
                 needanswer = False
                 if answer.lower() == names[k].lower():
@@ -234,7 +234,7 @@ if isgame:
                 else:
                     if nplayers > 2:
                         print('Sorry, it wasn\'t ' + answer + ', have another guess for half a point' )
-                        answer = input('Who is your second guess for who this question is talking about? ')
+                        answer = raw_input('Who is your second guess for who this question is talking about? ')
                         if answer.lower() == names[k].lower():
                             print('Correct, it was ' + names[k])
                             time.sleep(delayinseconds)
@@ -278,7 +278,7 @@ else:
             print(' ')
             # Have count-down time before prompting
             time.sleep(delayinseconds)
-            input('Press enter when you are ready to move on to the next question.')
+            raw_input('Press enter when you are ready to move on to the next question.')
             os.system('clear')
 
 
