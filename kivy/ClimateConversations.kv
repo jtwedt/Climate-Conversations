@@ -1,0 +1,146 @@
+#: import ListItemButton kivy.uix.listview.ListItemButton
+#: import ListAdapter kivy.adapters.listadapter.ListAdapter
+#: import main main
+
+<IntroUI>:
+	orientation: "vertical"
+	padding: 100
+	spacing: 30
+	begin_game_button: begin_game_button
+	about_game_button: about_game_button
+	BoxLayout:
+		Label:
+			text: "Climate Conversations"
+			font_size: 40
+	BoxLayout:
+		Button:
+			id: begin_game_button
+			text: "Begin a game"
+			size_y: "100dp"
+			font_size: 25
+			on_press: root.begin_game()
+	BoxLayout:
+		Button:
+			id: about_game_button
+			text: "About the game"
+			size_y: "50dp"
+			font_size: 25
+			on_press: root.about_game()
+
+<AboutGameUI>:
+	orientation: "vertical"
+	padding: 50
+	spacing: 30
+	BoxLayout:
+		Label:
+			text: "About Climate Conversations"
+			font_size: 20
+	BoxLayout:
+		Label:
+			text_size: self.size
+			text: "some info here\n\n\n\n     probably a bit longer \nInfo about who made the game, which pieces, and other acknowledgements. Trying to see if I can make it do a line break or wrap or something"
+	BoxLayout:
+		Button:
+			id: back_button
+			text: "Back"
+			size_y: "50dp"
+			size_hint_x: .5
+			on_press: root.back_to_intro()
+
+
+<AddPlayersUI>:
+	orientation: "vertical"
+	padding: 20
+	spacing: 10
+	player_name_input: player_name_input_box
+	player_info_display: player_info_display_box
+	player_year_input: player_birthyear_input_box
+	next_screen_button: next_screen_button
+	BoxLayout:
+		orientation: "horizontal"
+		Label: 
+			text: "Player Information"
+			font_size: 25
+			size_hint_x: 4
+		Button:
+			id: back_button
+			text: "Back"
+			size_hint_x: 1
+			on_press: root.back_to_intro()
+	ListView:
+		id: player_info_display_box
+		size_hint_y: 1
+		item_strings: []
+	GridLayout:
+		rows: 2
+		cols: 2
+		padding: 10
+		spacing: 10
+		Label:
+			text: "Name:"
+			size_hint_x: None
+			width: 550
+			size_hint_y: .2
+		Label:
+			text: "Birth year:"
+			size_hint_x: None
+			width: 175
+			size_hint_y: .2
+		TextInput:
+			id: player_name_input_box
+			text: "Sample player 1"
+			size_hint_x: None
+			width: 550
+		ListView:
+			size_hint_x: None
+			width: 175
+			id: player_birthyear_input_box
+			adapter:
+				ListAdapter(data=[str(x) for x in range(1980,2001)], cls=main.YearSelectorButton)
+	BoxLayout:
+		orientation: "vertical"
+		spacing: 10
+		Button:
+			id: add_player_button
+			size_hint_y: .4
+			text: "Add another player"
+			on_press: root.add_player()
+
+		Button:
+			id: next_screen_button
+			size_hint_y: .4
+			text: "Press here to move on once you've added some players"
+			on_press: print "got here"
+
+<GameSettingsUI>:
+	GridLayout:
+		rows: 9
+		cols: 1
+		# orientation: "vertical"
+		padding: 20
+		spacing: 10
+		Label:
+			text: "Game Setup"
+			font_size: 25
+		Label:
+			text: "How many rounds would you like to play?"
+			text_size: self.size
+		IntInput:
+			id: num_rounds_box
+			text: "5"
+		Label:
+			text: "Are you going to have SO MUCH FUN?"
+		ToggleButton:
+			text: "HECK YES"
+		Label:
+			text: "Are there other questions we should ask?"
+		ToggleButton:
+			text: "PROBABLY"
+		Button:
+			id: next_screen_button
+			text: "Next"
+			on_press: root.next_screen()
+
+
+<YearSelectorButton>:
+	on_press: self.register_press()
