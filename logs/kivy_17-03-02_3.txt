@@ -1,0 +1,26 @@
+[INFO              ] Logger: Record log in /Users/mt/projects/climate_conversations/logs/kivy_17-03-02_3.txt
+[DEBUG             ] App: Loading kv <./climateconversations.kv>
+[DEBUG             ] App: kv <./climateconversations.kv> not found
+[DEBUG             ] App: Loading kv <ui/ClimateConversations.kv>
+[DEBUG             ] Including file: 0
+[DEBUG             ] Including file: 0
+[DEBUG             ] Including file: 0
+[DEBUG             ] Resource: add </Library/Fonts> in path list
+[DEBUG             ] Resource: add </System/Library/Fonts> in path list
+[DEBUG             ] Resource: add </Users/mt/Library/Fonts> in path list
+[DEBUG             ] Resource: add </Applications/Kivy.app/Contents/Resources/kivy/kivy/data/fonts> in path list
+[DEBUG             ] Atlas: Load </Applications/Kivy.app/Contents/Resources/kivy/kivy/data/../data/images/defaulttheme.atlas>
+[DEBUG             ] Atlas: Need to load 1 images
+[DEBUG             ] Atlas: Load </Applications/Kivy.app/Contents/Resources/kivy/kivy/data/../data/images/defaulttheme-0.png>
+[DEBUG             ] ImageImageIO: Load </Applications/Kivy.app/Contents/Resources/kivy/kivy/data/../data/images/defaulttheme-0.png>
+[INFO              ] GL: NPOT texture support is available
+[DEBUG             ] Base: Create provider from mouse
+[INFO              ] Base: Start application main loop
+[DEBUG             ] IntroUI: Clicked begin game button
+[DEBUG             ] AddPlayersUI: Clicked back to intro button
+[DEBUG             ] IntroUI: Clicked about game button
+[DEBUG             ] AboutGameUI: Clicked back to intro button
+[DEBUG             ] IntroUI: Clicked about game button
+[DEBUG             ] AboutGameUI: Clicked back to intro button
+[DEBUG             ] IntroUI: Clicked begin game button
+[INFO              ] Base: Leaving application in progress...

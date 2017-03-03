@@ -57,19 +57,27 @@ def setup_game():
 
     return [players, n_rounds]
 
-def load_questions(game, players, n_rounds):
-    questions = []
+def load_events(game, players, n_rounds):
+    events = []
+    e_indices = []
     for round_i in range(n_rounds):
         for player in players:
             p = game.get_current_player()
-            q_idx, q = game.get_next_question(p)
-            if q is None:
-                print "Warning: out of questions for your group and the number of rounds. Returning what we have so far!"
-                return questions
-            questions.append(q)
+            e_idx, e = game.get_next_event(p)
+            if e is None:
+                print "Warning: out of events for your group and the number of rounds. Returning what we have so far!"
+                return events
+            events.append(e)
+            e_indices.append(e_idx)
             game.increment_player()
-    return questions
+    return e_indices, events
 
+def load_questions(game, e_indices):
+    questions = []
+    for e_idx in e_indices:
+        q = game.get_question(e_idx)
+        questions.append(q)
+    return questions
 
 def main():
     print "Welcome! Lets get a little information before we start the conversation."
@@ -88,13 +96,23 @@ def main():
                         events_file="data/firstHistoricClimateEvents.xlsx",
                         min_q_age=10)
 
-    questions = load_questions(game, players, n_rounds)
+    e_indices, events = load_events(game, players, n_rounds)
+
+    questions = load_questions(game, e_indices)
+
+    n_events = len(events)
+
+    if (n_events != len(questions)):
+        sys.exit('ERROR: should have same number of questions as events.')
 
     delay_in_seconds = 1
-
-    for q in questions:
+    
+    for event_i in range(n_events):
         os.system('clear')
-        print q
+        print events[event_i]
+        time.sleep(delay_in_seconds)
+        print ''
+        print questions[event_i]
         time.sleep(delay_in_seconds)
         raw_input("\nPress enter when you are ready to move on to the next prompt.")
     

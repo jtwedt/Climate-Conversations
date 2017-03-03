@@ -4,6 +4,7 @@ from random import randint
 import datetime
 import time
 from utils import *
+import math
 
 class Conversation():
     events = {}
@@ -75,44 +76,63 @@ class Conversation():
         else:
             return None
 
-    # TODO: This should be optimized as there are more and more questions
-    # TODO: As more question types are added, split this into multiple functions
-    #         Ideally, this would randomly choose the question type and question,
+    # TODO: This should be optimized as there are more and more events
+    # TODO: As more event types are added, split this into multiple functions
+    #         Ideally, this would randomly choose the event type and event,
     #         and then maybe something else would format it.
 
-    def get_next_question(self, player):
+    def get_next_event(self, player):
         # Figure out which player to ask
         # p = self.get_current_player()
         # print self.min_q_age
         # if p is None:
         #     return None
 
-        # Randomly choose a Q, but make sure:
-        #   a) we haven't already asked the question in this game
+        # Randomly choose a E, but make sure:
+        #   a) we haven't already discussed the event in this game
         #   b) the date of the event makes sense given their age
-        q_idx = randint(0, self.n_events-1)
+        e_idx = randint(0, self.n_events-1)
         n_checks = 1
-        while (q_idx in self.asked_events \
-           or int(self.events['start year'][q_idx]) - player.birth_year < self.min_q_age) \
+        while (e_idx in self.asked_events \
+           or int(self.events['start year'][e_idx]) - player.birth_year < self.min_q_age) \
            and n_checks < self.max_checks:
-            q_idx = randint(0, self.n_events-1)
+            e_idx = randint(0, self.n_events-1)
             n_checks += 1
 
         if n_checks >= self.max_checks:
             return None
 
-        player.asked_events.append(q_idx)
-        self.asked_events.append(q_idx)
+        player.asked_events.append(e_idx)
+        self.asked_events.append(e_idx)
 
-        q_desc = self.events['description'][q_idx]
-        #print "DEBUG: ", q_idx, q_desc
-        q_desc = q_desc.encode('utf-8').strip()
-        q_age = player.get_age_in_year(int(self.events['start year'][q_idx]))
+        e_desc = self.events['description'][e_idx]
+        #print "DEBUG: ", e_idx, e_desc
+        e_desc = e_desc.encode('utf-8').strip()
+        e_age = player.get_age_in_year(int(self.events['start year'][e_idx]))
 
-        # Return the question
-        q = "In the year " + player.name + " turned " + str(q_age) + ", " + q_desc
-        return q_idx, q
+        # Return question
+        e = "In the year " + player.name + " turned " + str(e_age) + ", " + e_desc
+        return e_idx, e
 
+    def get_question(self, e_idx):
+        e_year = self.events['start year'][e_idx]
+        
+        gen_questions = [ 'What was going on in your life around this time ({})?'.format(e_year), \
+                          'Did this event impact you personally? What about your friends and family?', \
+                          'Do you remember hearing about this in the news?', \
+                          'Has anything along these lines happened since then?', \
+                          'Who in the world was most impacted by this event?', \
+                          'Do you remember any other climate-related events from around this time ({})?'.format(e_year)]
+
+        if (type(self.events['question'][e_idx]) is float):
+            q_idx = randint(0, len(gen_questions)-1)
+            q = gen_questions[q_idx]
+        else:
+            q = self.events['question'][e_idx]
+
+        return q
+        
+        
     def check_for_extra_info(self, event_num):
         try:
             q_info = self.events['additional description'][event_num]
