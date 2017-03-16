@@ -1,17 +1,19 @@
+# encoding=utf8  
+import sys  
+reload(sys)  
+sys.setdefaultencoding('utf8')
 from flask import Flask, session, request, render_template, url_for, redirect
-import sys
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 sys.path.insert(0, os.getcwd())
 sys.path.insert(0, os.getcwd() + "/resources")
 sys.path.insert(0, os.getcwd() + "/ui") 
 from ClimateConversationsCore import *
+
 app = Flask(__name__)
 
 game_cache = {}
-# @app.route("/")
-# def run():
-#     session['testsession'] = 43
-#     # return '43'
 
 @app.route("/")
 def main():
@@ -59,7 +61,7 @@ def save_game_setup():
         user_key = os.urandom(24)
         session['user_key'] = user_key  # players
 
-    convo = Conversation(n_rounds = "", players=players)
+    convo = Conversation(n_rounds = n_rounds, players=players)
     game_cache[user_key] = convo #{"conversation":None, "players":None}
     # game_cache[user_key]["players"] = players
 
@@ -76,18 +78,35 @@ def save_game_setup():
 @app.route("/play")
 def play_game():
     global game_cache
+    app.logger.info("Loading convo from cache")
     user_key = session['user_key']
     convo = game_cache.get(user_key)
-    print convo
-    print "getting question"
+    app.logger.info("Got conversation")
     player = convo.get_current_player()
-    print player
-    q_idx, question = convo.get_next_event(player)
-    print question
-    print "returning template with question"
-    return render_template("play.html", text=question)
-    convo.increment_player()
+    app.logger.info("Got player")
+    if player is None:
+        app.logger.info("No player returned (probably no more rounds). Serving up 'OUT OF QUESTIONS.'")
+        # redirect to landing page
+        return render_template("play.html", player_name="", event='OUT OF QUESTIONS', question="")
+    incr = convo.increment_player()
+    app.logger.info("Incremented player")
+    e_idx, event = convo.get_next_event(player) ### figure out why this crashes at the end
+    app.logger.debug("Got event %d: %s" % (e_idx, event))
+    question = convo.get_question(e_idx)
+    app.logger.debug("Got question: %s" % question)
+    # print event
+    # print question
+    
+    return render_template("play.html", player_name=player.name, event=event, question=question)
+    
 
 if __name__ == "__main__":
+    handler = RotatingFileHandler('logs/webapp.log', maxBytes=10000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    # formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter( "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s ")
+    handler.setFormatter(formatter)
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.INFO)
     app.secret_key = os.urandom(32)
     app.run()

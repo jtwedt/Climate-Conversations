@@ -155,7 +155,6 @@ class Conversation():
        
     def increment_player(self):
         p_idx = self.current_player_idx + 1
-
         # If we have not reached the end of the round, move to the next player index
         if p_idx < self.n_players: 
             self.current_player_idx = p_idx
@@ -169,6 +168,7 @@ class Conversation():
                 return True
             # If there are no more rounds to play, we cannot increment the player
             else:
+                print self.rounds_left
                 return False
 
     def restart_game(self, repeats_allowed=True):
