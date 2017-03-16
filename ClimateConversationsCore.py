@@ -83,7 +83,8 @@ class Conversation():
 
     def get_next_event(self, player):
         # Figure out which player to ask
-        # p = self.get_current_player()
+        # player = self.get_current_player()
+        # print player
         # print self.min_q_age
         # if p is None:
         #     return None
@@ -112,6 +113,7 @@ class Conversation():
 
         # Return question
         e = "In the year " + player.name + " turned " + str(e_age) + ", " + e_desc
+        # print e 
         return e_idx, e
 
     def get_question(self, e_idx):
