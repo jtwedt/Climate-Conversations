@@ -19,10 +19,8 @@ game_cache = {}
 def main():
     return render_template('index.html')
 
-@app.route("/setup")#, methods=['POST'])
+@app.route("/setup")
 def game_setup():
-    # if request.method == "POST":
-        # session['testsession'] = request.form['testsession']
     return render_template("setup.html")
 
 @app.route("/setup/save", methods=['POST'])
@@ -47,7 +45,7 @@ def save_game_setup():
         else:
             break
         break
-        
+
     try:
         user_key = session['user_key']
     except:
@@ -66,25 +64,35 @@ def play_game():
     app.logger.info("Loading convo from cache")
     user_key = session['user_key']
     convo = game_cache.get(user_key)
-    app.logger.info("Got conversation")
+    app.logger.info("Successfully retrieved conversation")
     player = convo.get_current_player()
-    app.logger.info("Got player")
+    app.logger.info("Successfully asked the game for a player")
+
+    # Case: Game returned 'None' for the player.
+    #       This usually means that we ran out of rounds, so we end.
     if player is None:
         app.logger.info("No player returned (probably no more rounds). Serving up 'OUT OF QUESTIONS.'")
-        # redirect to landing page
+        game_cache.pop(user_key)
         return render_template("play.html", player_name="", event='Game over! Thanks for playing :)', question="", next_button_text="Play again?", next_button_target="/setup")
+
     incr = convo.increment_player()
     app.logger.info("Incremented player")
-    e_idx, event = convo.get_next_event(player) ### figure out why this crashes at the end
+    e_idx, event = convo.get_next_event(player)
+
+    # Case: Game returned 'None' for the event index.
+    #       This usually means that there are no more events left for this player.
+    #       Currently choosing to just keep going without that player.
     if e_idx is None:
         app.logger.info("No event index returned. Likely no more questions available for this player. Serving up 'OUT OF QUESTIONS' and removing player")
         convo.remove_player(player.name, player.birth_year)
-        # redirect to landing page
         return render_template("play.html", player_name="", question='Sorry, out of questions for %s' % player.name, event="", next_button_text="Keep going with other players", next_button_target="/play")
+
     app.logger.debug("Got event %d: %s" % (e_idx, event))
     question = convo.get_question(e_idx)
     app.logger.debug("Got question: %s" % question)
-    
+
+    # Case: Successfully retrieved player, event, and question
+    #       Display the question on the page!    
     return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next question", next_button_target="/play")
     
 
