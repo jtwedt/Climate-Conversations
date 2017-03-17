@@ -47,14 +47,7 @@ def save_game_setup():
         else:
             break
         break
-    # for key,val in request.form.iteritems():
-    #     print key, ":", val
-    #     if val == "":
-    #         print "no value"
-    # print request.form
-    # print request.values
-    # print request.method
-    # session['']
+        
     try:
         user_key = session['user_key']
     except:
@@ -62,17 +55,9 @@ def save_game_setup():
         session['user_key'] = user_key  # players
 
     convo = Conversation(n_rounds = n_rounds, players=players)
-    game_cache[user_key] = convo #{"conversation":None, "players":None}
-    # game_cache[user_key]["players"] = players
-
-    # game_cache.setdefault(user_key, default={"conversation":None, "players":None})
-    # print "setting players"
-    # game_cache[user_key]["players"] = players
-    print "game cache here:"
-    print game_cache
+    game_cache[user_key] = convo
 
     return redirect("/play", code=302)
-    # return render_template("play.html")
 
 
 @app.route("/play")
@@ -87,17 +72,20 @@ def play_game():
     if player is None:
         app.logger.info("No player returned (probably no more rounds). Serving up 'OUT OF QUESTIONS.'")
         # redirect to landing page
-        return render_template("play.html", player_name="", event='OUT OF QUESTIONS', question="")
+        return render_template("play.html", player_name="", event='Game over! Thanks for playing :)', question="", next_button_text="Play again?", next_button_target="/setup")
     incr = convo.increment_player()
     app.logger.info("Incremented player")
     e_idx, event = convo.get_next_event(player) ### figure out why this crashes at the end
+    if e_idx is None:
+        app.logger.info("No event index returned. Likely no more questions available for this player. Serving up 'OUT OF QUESTIONS' and removing player")
+        convo.remove_player(player.name, player.birth_year)
+        # redirect to landing page
+        return render_template("play.html", player_name="", question='Sorry, out of questions for %s' % player.name, event="", next_button_text="Keep going with other players", next_button_target="/play")
     app.logger.debug("Got event %d: %s" % (e_idx, event))
     question = convo.get_question(e_idx)
     app.logger.debug("Got question: %s" % question)
-    # print event
-    # print question
     
-    return render_template("play.html", player_name=player.name, event=event, question=question)
+    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next question", next_button_target="/play")
     
 
 if __name__ == "__main__":
@@ -109,4 +97,4 @@ if __name__ == "__main__":
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
     app.secret_key = os.urandom(32)
-    app.run()
+    app.run(debug=True)
