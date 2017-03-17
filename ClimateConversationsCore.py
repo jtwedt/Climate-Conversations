@@ -67,6 +67,14 @@ class Conversation():
         self.players.append(player)
         self.n_players += 1
 
+    def remove_player(self, player_name, player_birthyear):
+        for player in self.players:
+            if player_name == player.name and player_birthyear == player.birth_year:
+                self.players.remove(player)
+                self.n_players -= 1
+                return True
+        return False
+
     def get_current_player(self):
         if self.rounds_left > 0:
             if self.current_player_idx >= self.n_players:
@@ -101,7 +109,7 @@ class Conversation():
             n_checks += 1
 
         if n_checks >= self.max_checks:
-            return None
+            return None, None
 
         player.asked_events.append(e_idx)
         self.asked_events.append(e_idx)
