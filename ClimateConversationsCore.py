@@ -29,6 +29,11 @@ class Conversation():
         self.min_age_to_play = min_age_to_play
         self.events = self.load_events_from_excel(events_file)
         #self.events = self.load_events_from_gdrive("1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg")
+        # GOOGLE DRIVE LINKING INFORMATION
+        # The gdrive_key is the code in the URL after ../spreadsheets/d/
+        # Example: https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060
+        # The key for the above url would be "1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg"
+        # You can get this via the "Share" button -> "get shareable link"
         self.n_events = len(self.events['description'])
         if players is not None:
             self.players = players
@@ -52,7 +57,7 @@ class Conversation():
     Load event spreadsheet directly from google drive.
     Input: gdrive key
     Output: dictionary of events (keys: event id, values: event information)
-      The gdrive_keyis the code in the URL after ../spreadsheets/d/
+      The gdrive_key is the code in the URL after ../spreadsheets/d/
       Example: https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060
       The key for the above url would be "1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg"
       You can get this via the "Share" button -> "get shareable link"
