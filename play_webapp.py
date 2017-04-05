@@ -15,6 +15,8 @@ app = Flask(__name__)
 
 game_cache = {}
 
+
+
 @app.route("/")
 def main():
     return render_template('index.html')
@@ -52,7 +54,10 @@ def save_game_setup():
         user_key = os.urandom(24)
         session['user_key'] = user_key  # players
 
-    convo = Conversation(n_rounds = n_rounds, players=players)
+    convo = Conversation(n_rounds = n_rounds, players=players,
+                         gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") # Subset of 10 questions
+                         #gdrive_key="183SABhCyJmVheVwu_1rWzY7jOjvtyfbmG58ow321a3g") # Original set of 70ish questions
+                         #events_file="data/firstHistoricClimateEvents.xlsx") # Locally stored copy
     game_cache[user_key] = convo
 
     return redirect("/play", code=302)
@@ -105,4 +110,4 @@ if __name__ == "__main__":
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
     app.secret_key = os.urandom(32)
-    app.run(debug=False)
+    app.run(debug=True)

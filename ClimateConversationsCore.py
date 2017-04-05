@@ -20,20 +20,22 @@ class Conversation():
 
     def __init__(self, 
                  n_rounds=5,
-                 events_file="data/firstHistoricClimateEvents.xlsx",
+                 events_file=None,
+                 gdrive_key=None,
                  min_age_to_play=7,
                  players=None,
                  min_q_age=10):
         self.n_rounds = n_rounds
         self.rounds_left = n_rounds
         self.min_age_to_play = min_age_to_play
-        self.events = self.load_events_from_excel(events_file)
-        #self.events = self.load_events_from_gdrive("1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg")
-        # GOOGLE DRIVE LINKING INFORMATION
-        # The gdrive_key is the code in the URL after ../spreadsheets/d/
-        # Example: https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060
-        # The key for the above url would be "1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg"
-        # You can get this via the "Share" button -> "get shareable link"
+
+        if gdrive_key:
+            self.events = self.load_events_from_gdrive(gdrive_key)
+        elif events_file:
+            self.events = self.load_events_from_excel(events_file)
+        else:
+            raise ValueError("Error: need to specify an events file (google drive or local spreadsheet).")
+
         self.n_events = len(self.events['description'])
         if players is not None:
             self.players = players
@@ -64,8 +66,9 @@ class Conversation():
     '''
     def load_events_from_gdrive(self, gdrive_key):
         gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
-        df = pd.read_csv(gdrive_url, encoding='utf-8')
+        df = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1) # header keeps changing
         events = df.to_dict()
+        print df.columns
         return events
 
     def add_player(self, player):
@@ -96,13 +99,8 @@ class Conversation():
 
     def get_next_event(self, player):
         # Figure out which player to ask
-        # player = self.get_current_player()
-        # print player
-        # print self.min_q_age
-        # if p is None:
-        #     return None
 
-        # Randomly choose a E, but make sure:
+        # Randomly choose an event, but make sure:
         #   a) we haven't already discussed the event in this game
         #   b) the date of the event makes sense given their age
         e_idx = randint(0, self.n_events-1)
@@ -120,13 +118,11 @@ class Conversation():
         self.asked_events.append(e_idx)
 
         e_desc = self.events['description'][e_idx]
-        #print "DEBUG: ", e_idx, e_desc
         e_desc = e_desc.encode('utf-8').strip()
         e_age = player.get_age_in_year(int(self.events['start year'][e_idx]))
 
         # Return question
         e = "In the year " + player.name + " turned " + str(e_age) + ", " + e_desc
-        # print e 
         return e_idx, e
 
     def get_question(self, e_idx):
