@@ -98,7 +98,7 @@ def play_game():
 
     # Case: Successfully retrieved player, event, and question
     #       Display the question on the page!    
-    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next question", next_button_target="/play")
+    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
     
 
 if __name__ == "__main__":
