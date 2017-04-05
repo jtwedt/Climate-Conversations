@@ -73,7 +73,7 @@ def play_game():
     if player is None:
         app.logger.info("No player returned (probably no more rounds). Serving up 'OUT OF QUESTIONS.'")
         game_cache.pop(user_key)
-        return render_template("play.html", player_name="", event='Game over! Thanks for playing :)', question="", next_button_text="Play again?", next_button_target="/setup")
+        return render_template("feedback.html", event='Game over! Thanks for playing :)', next_button_text="Play again?", next_button_target="/setup")
 
     incr = convo.increment_player()
     app.logger.info("Incremented player")
