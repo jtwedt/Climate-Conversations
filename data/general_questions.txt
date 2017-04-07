@@ -1,0 +1,9 @@
+# One question per line
+# Use %d anywhere you want the event year to be filled in
+# Only use comments at the beginning of a line.
+What was going on in your life around this time (%d)?
+Did this event impact you personally? What about your friends and family?
+Do you remember hearing about this in the news?
+Has anything along these lines happened since then?
+Who in the world was most impacted by this event?
+Do you remember any other climate-related events from around this time (%d)?
