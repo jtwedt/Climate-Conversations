@@ -22,6 +22,7 @@ class Conversation():
                  n_rounds=5,
                  events_file=None,
                  gdrive_key=None,
+                 general_q_file="data/general_questions.txt",
                  min_age_to_play=7,
                  players=None,
                  min_q_age=10):
@@ -42,6 +43,9 @@ class Conversation():
             self.n_players = len(self.players)
         self.max_checks = self.n_events*2
         self.min_q_age = min_q_age
+
+        self.gen_questions = list(pd.read_table(general_q_file, comment="#", header=None)[0])
+        self.q_colnames = self.find_question_cols()
 
     '''
     Load event spreadsheet from an excel file. 
@@ -68,8 +72,15 @@ class Conversation():
         gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
         df = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1) # header keeps changing
         events = df.to_dict()
-        print df.columns
         return events
+
+    def find_question_cols(self):
+        assert self.events is not None
+        columns = self.events.keys()
+        q_cols = [c for c in columns if "question" in c]
+        if len(q_cols) == 0:
+            q_cols = None
+        return q_cols
 
     def add_player(self, player):
         self.players.append(player)
@@ -125,24 +136,50 @@ class Conversation():
         e = "In the year " + player.name + " turned " + str(e_age) + ", " + e_desc
         return e_idx, e
 
-    def get_question(self, e_idx):
-        e_year = self.events['start year'][e_idx]
-        
-        gen_questions = [ 'What was going on in your life around this time ({})?'.format(e_year), \
-                          'Did this event impact you personally? What about your friends and family?', \
-                          'Do you remember hearing about this in the news?', \
-                          'Has anything along these lines happened since then?', \
-                          'Who in the world was most impacted by this event?', \
-                          'Do you remember any other climate-related events from around this time ({})?'.format(e_year)]
-
-        if (type(self.events['question'][e_idx]) is float):
-            q_idx = randint(0, len(gen_questions)-1)
-            q = gen_questions[q_idx]
+    ''' Randomly select a general question from the list.
+    Input: e_year [None, year]
+        if e_year is None: get any random string that does NOT require a year
+    Output: str
+        The string question, possibly containing the input year.
+    '''
+    def choose_general_question(self, e_year=None):
+        if e_year is None:
+            raise NotImplementedError
         else:
-            q = self.events['question'][e_idx]
+            q_idx = randint(0, len(self.gen_questions)-1)
+            q = self.gen_questions[q_idx]
+            if "%d" in q:
+                q = q % e_year
+            return q
 
-        return q
-        
+    def get_question(self, e_idx):
+        assert type(e_idx) is int
+
+        e_year = self.events['start year'][e_idx]
+
+        # If the columns of the database include more than 1 question column,
+        # then get a random one of those questions
+        if self.q_colnames is None:
+            random_q = True
+        else:
+            colnums = [ci for ci,cname in enumerate(self.events.keys()) if cname in self.q_colnames]
+            q_choices = [self.events[cname][e_idx] for cname in self.q_colnames]
+            q_choices = [q for q in q_choices if q] # filter out None and nan
+            # get the questions in those columns
+            # filter any empty questions
+            # if all of the questions are empty, get a random question
+            q_choices = []
+            if len(q_choices) == 0:
+                random_q = True
+            else:
+                q = q_choices[randint(0, len(q_choices)-1)]
+
+        # Else, get a random question
+        if random_q:
+            q = self.choose_general_question(e_year)
+            print q
+
+        return q  
         
     def check_for_extra_info(self, event_num):
         try:
