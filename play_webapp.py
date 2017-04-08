@@ -48,11 +48,19 @@ def save_game_setup():
             break
         break
 
-    try:
-        user_key = session['user_key']
-    except:
-        user_key = os.urandom(24)
-        session['user_key'] = user_key  # players
+    # The code below uses the same session key if they've played before
+    # HOWEVER, this is not what we want. We should start a new session if
+    # the user starts a new round. In the future if we did this more 
+    # intelligently, it would be nice to save the questions they got previously
+    # so they didn't get the same questions in a new round. Removing for now.
+    # try:
+    #     user_key = session['user_key']
+    # except:
+    #     user_key = os.urandom(24)
+    #     session['user_key'] = user_key  
+
+    user_key = os.urandom(24)
+    session['user_key'] = user_key  # players
 
     convo = Conversation(n_rounds = n_rounds, players=players,
                          gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") # Subset of 10 questions

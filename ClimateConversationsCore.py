@@ -95,6 +95,8 @@ class Conversation():
         return False
 
     def get_current_player(self):
+        if self.n_players == 0:
+            return None
         if self.rounds_left > 0:
             if self.current_player_idx >= self.n_players:
                 self.current_player_idx = 0
