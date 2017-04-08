@@ -166,7 +166,7 @@ class Conversation():
             q1 = self.events["example question 1"][e_idx]
             q2 = self.events["example question 2"][e_idx]
             q3 = self.events["example question 3"][e_idx]
-            q = "%s\n\n%s\n\n%s" % (q1, q2, q3)
+            q = "%s<br/><br/>%s<br/><br/>%s" % (q1, q2, q3)
 
         return q  
         
