@@ -1,32 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+<link href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy" rel="stylesheet">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <head>
-    <title>Climate Conversations App</title>
- 
-    
-    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
- 
-    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
-    <link href="style/setup.css" rel="stylesheet">
+    <title>Climate Conversations</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main_blue.css') }}"/> 
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/setup.css') }}"/> 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy">
     
   </head>
  
   <body>
 
-    <!-- Begin navigation bar -->
- 
-    <div class="container">
-      <div class="header">
-        <h3 class="text-muted">Climate Conversations App</h3>
-      </div>
+    <h3>Get ready to travel through time...</h3>
 
-    <!-- End navigation bar -->
+    <div class="setup-form">
+      <div class="player-entry">
+        <h3 class="blue">Player 1</h3>
+        <label for="inputName" class="sr-only">Name</label>
+        <input type="name" name="name-p1" id="name-p1" class="form-control" placeholder="Name" required autofocus>
+        <br/>
+        <label for="inputBirthyear" class="sr-only">Year you were born</label>
+        <input id="birthyear-p1" name="birthyear-p1" class="form-control">
+      </div>
+    </div>
 
     <!-- Begin player form -->
  
       <div class="jumbotron">
-        <h2>Add Players</h2>
+        <h2>------Add Players</h2>
         <form class="form-addplayers" method="post" action="/setup/save">
           <h3>Player 1</h3>
           <label for="inputName" class="sr-only">Player Name</label>

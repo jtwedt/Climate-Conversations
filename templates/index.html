@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0" charset="utf-8">
+ 
 <head>
     <!-- Code used and heavily modified from this tutorial: http://bit.ly/2m814Ww -->
-    <title>Climate Conversations App</title>
- 
-    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <title>Climate Conversations</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main_blue.css') }}"/> 
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/landing.css') }}"/> 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy">
 
+    
 </head>
  
-<body>
+<body class="noscroll">
 
-    <!-- Begin navigation bar -->
- 
-    <div class="container">
-        <div class="header">
-            <h3 class="text-muted">Climate Conversations App</h3>
+    <div class="fill-screen">
+        <h1>Yesterday, Today, Tomorrow.</h1>
+        <img class='fill-div' 
+             src="{{ url_for('static', filename='images/earth_dots1.jpg') }}"/>
+        <div class="play-button">
+            <a class="play-button" href="setup" role="button">
+                <img class="play-button"
+                     src="{{ url_for('static', filename='images/lets_talk_circle.jpg') }}"/>
+            </a>
         </div>
-    <!-- End navigation bar -->
- 
-        <div class="jumbotron">
-            <h1></h1>
+
+<!-- 
+        <div class="play-button">
             <p class="lead"></p>
             <p><a class="btn btn-lg btn-success" href="setup" role="button">Have a conversation</a>
             </p>
-        </div>
-        <footer class="footer">
-            <p>&copy; Company 2015</p>
-        </footer>
+        </div> -->
+        <!-- <footer class="footer"></footer> -->
  
     </div>
 </body>

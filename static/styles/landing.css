@@ -1,0 +1,14 @@
+div.play-button {
+    text-align: right;
+    bottom: 0;
+    right: 0;
+    margin-bottom: 15%;
+    height: auto;
+
+}
+
+img.play-button {
+    max-width: 40%;
+    max-height:30vh;
+    margin: auto;
+}
