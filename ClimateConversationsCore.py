@@ -85,6 +85,7 @@ class Conversation():
             if player_name == player.name and player_birthyear == player.birth_year:
                 self.players.remove(player)
                 self.n_players -= 1
+                self.current_player_idx -= 1
                 return True
         return False
 
