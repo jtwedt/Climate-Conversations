@@ -7,16 +7,8 @@ from utils import *
 import math
 
 class Conversation():
-    events = {}
     min_age_to_play = 0 # Overall minimum age to play the game
-    min_q_age = 0 # Don't ask Q's about events happening before the player is this old
-    n_rounds = 0
-    n_events = 0
-    players = []
-    rounds_left = 0
-    current_player_idx = 0
-    max_checks = 100
-    asked_events = []
+    min_q_age = 0 # Don't ask Q's about events happening before the player is this old 
 
     def __init__(self, 
                  n_rounds=5,
@@ -29,6 +21,8 @@ class Conversation():
         self.n_rounds = n_rounds
         self.rounds_left = n_rounds
         self.min_age_to_play = min_age_to_play
+        self.asked_events = []
+        self.current_player_idx = 0
 
         if gdrive_key:
             self.events = self.load_events_from_gdrive(gdrive_key)
@@ -41,7 +35,7 @@ class Conversation():
         if players is not None:
             self.players = players
             self.n_players = len(self.players)
-        self.max_checks = self.n_events*2
+        self.max_checks = self.n_events**2
         self.min_q_age = min_q_age
 
         self.gen_questions = list(pd.read_table(general_q_file, comment="#", header=None)[0])

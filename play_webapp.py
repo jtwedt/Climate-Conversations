@@ -30,6 +30,7 @@ def save_game_setup():
     global game_cache
     form_data = request.form
     n_rounds = int(form_data.get("num_rounds"))
+    app.logger.info("Saved n_rounds: %d" % n_rounds)
     players = []
 
     # TODO remove this hardcoding!!
@@ -38,14 +39,12 @@ def save_game_setup():
     p1 = Player(p1_name, p1_byear)
     players.append(p1)
 
-    while True:
-        p2_name = form_data.get("name-p2")
-        p2_byear = int(form_data.get("birthyear-p2"))
-        if p2_name:
-            p2 = Player(p2_name, p2_byear)
-            players.append(p2)
-        else:
-            break
+    p2_name = form_data.get("name-p2")
+    p2_byear = int(form_data.get("birthyear-p2"))
+    if p2_name:
+        p2 = Player(p2_name, p2_byear)
+        players.append(p2)
+    else:
         break
 
     # The code below uses the same session key if they've played before
@@ -60,6 +59,7 @@ def save_game_setup():
     #     session['user_key'] = user_key  
 
     user_key = os.urandom(24)
+    app.logger.info("Assigned session key: %s" % user_key)
     session['user_key'] = user_key  # players
 
     convo = Conversation(n_rounds = n_rounds, players=players,
@@ -79,7 +79,7 @@ def play_game():
     convo = game_cache.get(user_key)
     app.logger.info("Successfully retrieved conversation")
     player = convo.get_current_player()
-    app.logger.info("Successfully asked the game for a player")
+    app.logger.info("Asked the game for a player, got: %s" % str(player))
 
     # Case: Game returned 'None' for the player.
     #       This usually means that we ran out of rounds, so we end.
