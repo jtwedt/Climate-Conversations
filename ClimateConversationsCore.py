@@ -157,27 +157,19 @@ class Conversation():
 
         e_year = self.events['start year'][e_idx]
 
-        # If the columns of the database include more than 1 question column,
-        # then get a random one of those questions
-        if self.q_colnames is None:
-            random_q = True
-        else:
-            colnums = [ci for ci,cname in enumerate(self.events.keys()) if cname in self.q_colnames]
-            q_choices = [self.events[cname][e_idx] for cname in self.q_colnames]
-            q_choices = [q for q in q_choices if q] # filter out None and nan
-            # get the questions in those columns
-            # filter any empty questions
-            # if all of the questions are empty, get a random question
-            q_choices = []
-            if len(q_choices) == 0:
-                random_q = True
-            else:
-                q = q_choices[randint(0, len(q_choices)-1)]
-
-        # Else, get a random question
-        if random_q:
+        # If we have just one question column, assume it's the old db
+        # aka get a random question
+        if len(self.q_colnames) == 1:
             q = self.choose_general_question(e_year)
-            print q
+
+        # Otherwise, if we have more than 1 question column, assume it's the 
+        # database with 3 questions.
+        # For now, format it into one big long string with line breaks.
+        else:
+            q1 = self.events["example question 1"][e_idx]
+            q2 = self.events["example question 2"][e_idx]
+            q3 = self.events["example question 3"][e_idx]
+            q = "%s\n\n%s\n\n%s" % (q1, q2, q3)
 
         return q  
         
