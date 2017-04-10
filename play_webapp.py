@@ -30,6 +30,7 @@ def save_game_setup():
     global game_cache
     form_data = request.form
     n_rounds = int(form_data.get("num_rounds"))
+    app.logger.info("Saved n_rounds: %d" % n_rounds)
     players = []
 
     # TODO remove this hardcoding!!
@@ -38,21 +39,63 @@ def save_game_setup():
     p1 = Player(p1_name, p1_byear)
     players.append(p1)
 
-    while True:
-        p2_name = form_data.get("name-p2")
-        p2_byear = int(form_data.get("birthyear-p2"))
-        if p2_name:
-            p2 = Player(p2_name, p2_byear)
-            players.append(p2)
-        else:
-            break
-        break
+    p2_name = form_data.get("name-p2")
+    p2_byear = int(form_data.get("birthyear-p2"))
+    if p2_name:
+        p2 = Player(p2_name, p2_byear)
+        players.append(p2)
+    else:
+        pass
 
-    try:
-        user_key = session['user_key']
-    except:
-        user_key = os.urandom(24)
-        session['user_key'] = user_key  # players
+    p3_name = form_data.get("name-p3")
+    p3_byear = int(form_data.get("birthyear-p3"))
+    if p3_name:
+        p3 = Player(p3_name, p3_byear)
+        players.append(p3)
+    else:
+        pass
+
+    p4_name = form_data.get("name-p4")
+    p4_byear = int(form_data.get("birthyear-p4"))
+    if p4_name:
+        p4 = Player(p4_name, p4_byear)
+        players.append(p4)
+    else:
+        pass
+
+    p5_name = form_data.get("name-p5")
+    p5_byear = int(form_data.get("birthyear-p5"))
+    if p5_name:
+        p5 = Player(p5_name, p5_byear)
+        players.append(p5)
+    else:
+        pass
+
+    p6_name = form_data.get("name-p6")
+    p6_byear = int(form_data.get("birthyear-p6"))
+    if p6_name:
+        p6 = Player(p6_name, p6_byear)
+        players.append(p6)
+    else:
+        pass
+
+    # The code below uses the same session key if they've played before
+    # HOWEVER, this is not what we want. We should start a new session if
+    # the user starts a new round. In the future if we did this more 
+    # intelligently, it would be nice to save the questions they got previously
+    # so they didn't get the same questions in a new round. Removing for now.
+    # try:
+    #     user_key = session['user_key']
+    # except:
+    #     user_key = os.urandom(24)
+    #     session['user_key'] = user_key  
+
+    player_string = "\n".join([str(p) for p in players])
+    app.logger.info("Added players: \n%s" % player_string)
+
+    user_key = os.urandom(24)
+    app.logger.info("Assigned session key: %s" % user_key)
+    session['user_key'] = user_key  # players
 
     convo = Conversation(n_rounds = n_rounds, players=players,
                          gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") # Subset of 10 questions
@@ -71,7 +114,7 @@ def play_game():
     convo = game_cache.get(user_key)
     app.logger.info("Successfully retrieved conversation")
     player = convo.get_current_player()
-    app.logger.info("Successfully asked the game for a player")
+    app.logger.info("Asked the game for a player, got: %s" % str(player))
 
     # Case: Game returned 'None' for the player.
     #       This usually means that we ran out of rounds, so we end.

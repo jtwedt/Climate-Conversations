@@ -7,16 +7,8 @@ from utils import *
 import math
 
 class Conversation():
-    events = {}
     min_age_to_play = 0 # Overall minimum age to play the game
-    min_q_age = 0 # Don't ask Q's about events happening before the player is this old
-    n_rounds = 0
-    n_events = 0
-    players = []
-    rounds_left = 0
-    current_player_idx = 0
-    max_checks = 100
-    asked_events = []
+    min_q_age = 0 # Don't ask Q's about events happening before the player is this old 
 
     def __init__(self, 
                  n_rounds=5,
@@ -29,6 +21,8 @@ class Conversation():
         self.n_rounds = n_rounds
         self.rounds_left = n_rounds
         self.min_age_to_play = min_age_to_play
+        self.asked_events = []
+        self.current_player_idx = 0
 
         if gdrive_key:
             self.events = self.load_events_from_gdrive(gdrive_key)
@@ -41,7 +35,7 @@ class Conversation():
         if players is not None:
             self.players = players
             self.n_players = len(self.players)
-        self.max_checks = self.n_events*2
+        self.max_checks = self.n_events**2
         self.min_q_age = min_q_age
 
         self.gen_questions = list(pd.read_table(general_q_file, comment="#", header=None)[0])
@@ -91,10 +85,13 @@ class Conversation():
             if player_name == player.name and player_birthyear == player.birth_year:
                 self.players.remove(player)
                 self.n_players -= 1
+                self.current_player_idx -= 1
                 return True
         return False
 
     def get_current_player(self):
+        if self.n_players == 0:
+            return None
         if self.rounds_left > 0:
             if self.current_player_idx >= self.n_players:
                 self.current_player_idx = 0
@@ -157,27 +154,19 @@ class Conversation():
 
         e_year = self.events['start year'][e_idx]
 
-        # If the columns of the database include more than 1 question column,
-        # then get a random one of those questions
-        if self.q_colnames is None:
-            random_q = True
-        else:
-            colnums = [ci for ci,cname in enumerate(self.events.keys()) if cname in self.q_colnames]
-            q_choices = [self.events[cname][e_idx] for cname in self.q_colnames]
-            q_choices = [q for q in q_choices if q] # filter out None and nan
-            # get the questions in those columns
-            # filter any empty questions
-            # if all of the questions are empty, get a random question
-            q_choices = []
-            if len(q_choices) == 0:
-                random_q = True
-            else:
-                q = q_choices[randint(0, len(q_choices)-1)]
-
-        # Else, get a random question
-        if random_q:
+        # If we have just one question column, assume it's the old db
+        # aka get a random question
+        if len(self.q_colnames) == 1:
             q = self.choose_general_question(e_year)
-            print q
+
+        # Otherwise, if we have more than 1 question column, assume it's the 
+        # database with 3 questions.
+        # For now, format it into one big long string with line breaks.
+        else:
+            q1 = self.events["example question 1"][e_idx]
+            q2 = self.events["example question 2"][e_idx]
+            q3 = self.events["example question 3"][e_idx]
+            q = "<p>%s</p><br/><p>%s</p><br/><p>%s</p>" % (q1, q2, q3)
 
         return q  
         

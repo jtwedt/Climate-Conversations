@@ -29,7 +29,10 @@
         <div class="jumbotron">
             <!-- <h3>{{ player_name }}:</h3> -->
             <h3>{{ event }}</h3>
-            <p class="lead" name="question">{{ question }}</p>
+            <p class="lead" name="question">
+                {% autoescape false %}
+                {{ question }}
+                {% endautoescape %}</p>
             <!-- <p><a class="btn btn-lg btn-success" href="setup" role="button">Have a conversation</a> -->
             </p>
             <p><a class="btn btn-lg btn-success" href="{{next_button_target}}" role="button">{{ next_button_text }}</a>
