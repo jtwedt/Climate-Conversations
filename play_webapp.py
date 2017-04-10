@@ -40,40 +40,45 @@ def save_game_setup():
     players.append(p1)
 
     p2_name = form_data.get("name-p2")
-    p2_byear = int(form_data.get("birthyear-p2"))
+    p2_byear = form_data.get("birthyear-p2")
     if p2_name:
+        p2_byear = int(p2_byear)
         p2 = Player(p2_name, p2_byear)
         players.append(p2)
     else:
         pass
 
     p3_name = form_data.get("name-p3")
-    p3_byear = int(form_data.get("birthyear-p3"))
+    p3_byear = form_data.get("birthyear-p3")
     if p3_name:
+        p3_byear = int(p3_byear)
         p3 = Player(p3_name, p3_byear)
         players.append(p3)
     else:
         pass
 
     p4_name = form_data.get("name-p4")
-    p4_byear = int(form_data.get("birthyear-p4"))
+    p4_byear = form_data.get("birthyear-p4")
     if p4_name:
+        p4_byear = int(p4_byear)
         p4 = Player(p4_name, p4_byear)
         players.append(p4)
     else:
         pass
 
     p5_name = form_data.get("name-p5")
-    p5_byear = int(form_data.get("birthyear-p5"))
+    p5_byear = form_data.get("birthyear-p5")
     if p5_name:
+        p5_byear = int(p5_byear)
         p5 = Player(p5_name, p5_byear)
         players.append(p5)
     else:
         pass
 
     p6_name = form_data.get("name-p6")
-    p6_byear = int(form_data.get("birthyear-p6"))
+    p6_byear = form_data.get("birthyear-p6")
     if p6_name:
+        p6_byear = int(p6_byear)
         p6 = Player(p6_name, p6_byear)
         players.append(p6)
     else:
@@ -133,7 +138,7 @@ def play_game():
     if e_idx is None:
         app.logger.info("No event index returned. Likely no more questions available for this player. Serving up 'OUT OF QUESTIONS' and removing player")
         convo.remove_player(player.name, player.birth_year)
-        return render_template("play.html", player_name="", question='Sorry, out of questions for %s' % player.name, event="", next_button_text="Keep going with other players", next_button_target="/play")
+        return render_template("play.html", player_name="", question='Thanks for playing, %s! You made it through all the questions!' % player.name, event="", next_button_text="Keep going with other players", next_button_target="/play")
 
     app.logger.debug("Got event %d: %s" % (e_idx, event))
     question = convo.get_question(e_idx)

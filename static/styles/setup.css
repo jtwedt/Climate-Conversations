@@ -1,11 +1,71 @@
-div.setup-form {
+div.player-entry {
     background-color: white;
-    padding-left: 3vh;
-    padding-right: 3vh;
-    padding-top: 1vh;
-    padding-bottom: 2vh;
+    padding-left: 3vw;
+    padding-right: 3vw;
+    padding-top: 1px;
+    padding-bottom: 10px;
+    margin: 10px 10px 10px 15px;
+    /*float: left;*/
+}
+
+div.container {
+    display: table;
+    width: 100%;
+    margin-bottom:7px;
 }
 
 body {
     color: #00afee;
+}
+
+span {
+    display: table-cell;
+    padding: 0 10px 0 5px;
+}
+
+label {
+    display: table-cell;
+    width: 1px;
+    white-space: nowrap;
+}
+
+input.freeform-oneline {
+    display: table-cell;
+    border: none;
+    border-bottom: 3px solid #00afee;
+    margin: 0 5px 0 5px;
+    padding-left: 5px;
+    width: 100%;
+}
+
+input.freeform-oneline:focus {
+    outline: none;
+}
+
+div.round-input {
+    text-align: center;
+    display: table;
+    padding-left: 4vw;
+    padding-right: 4vw;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-left: 4.2vw;
+}
+
+select.num-rounds {
+    display: table-cell;
+    margin-left: 20px;
+}
+
+h3.num-rounds {
+    display: table-cell;
+}
+
+div.submit {
+    text-align: center;
+}
+
+input.next-button {
+    max-width: 40px;
+    max-height: 40px;
 }

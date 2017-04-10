@@ -35,7 +35,7 @@ h2 {
     font-size: 5vw;
 }
 
-h2.blue {
+h2.invert_colors {
     color: #00afee ;
 }
 
@@ -46,9 +46,10 @@ h3 {
     font-weight: bolder;
     text-align: center;
     font-size: 3vh;
+    line-height: 0.8;
 }
 
-h3.blue {
+h3.invert_colors {
     color: #00afee;
     text-align: left;
 }
