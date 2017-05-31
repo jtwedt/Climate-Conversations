@@ -1,0 +1,48 @@
+div.prompt {
+    padding: 30px
+}
+
+div.event {
+    padding: 3vw;
+}
+
+p.event {
+    color: black;
+    font-weight: bolder;
+    font-size: 4.5vw;
+}
+
+div.question {
+    background-color: white;
+    padding: 3vw;
+    color: black;
+    font-size: 3.5vw;
+}
+
+p.question {
+    font-weight: bold;
+}
+
+div.next-button {
+    text-align: center;
+}
+
+a.next-button {
+    color: white;
+    text-decoration: none;
+}
+
+img.next-button {
+    max-width: 40px;
+    max-height: 40px;
+}
+
+@media all and (min-width: 960px) {
+p.event {
+    font-size: 30px;
+}
+div.question {
+    font-size: 20px;
+}
+
+}

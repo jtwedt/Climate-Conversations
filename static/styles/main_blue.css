@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy');
+@charset "utf-8";
+html, body {
+    height: 99%;
+    width: 99%;
+    padding-top: 15px;
+    padding-bottom: 40px;
+    background-color: #00afee;
+    font-family: 'Sorts Mill Goudy', serif;
+    font-family: 'Montserrat', sans-serif;
+    font-family: 'Open Sans', sans-serif;
+    color: white;
+}
+
+body.noscroll {
+    position: fixed;
+    overflow: hidden;
+}
+
+h1 {
+    font-family: 'Montserrat';
+    text-transform: uppercase;
+    color: white;
+    font-weight: bolder;
+    text-align: left;
+    font-size: 6vh;
+}
+
+h2 {
+    font-family: 'Montserrat';
+    text-transform: uppercase;
+    color: white;
+    font-weight: bolder;
+    text-align: left;
+    font-size: 5vw;
+}
+
+h2.invert_colors {
+    color: #00afee ;
+}
+
+h3 {
+    font-family: 'Montserrat';
+    text-transform: uppercase;
+    color: white;
+    font-weight: bolder;
+    text-align: center;
+    font-size: 3vh;
+    line-height: 0.8;
+}
+
+h3.invert_colors {
+    color: #00afee;
+    text-align: left;
+}
+
+p {
+  font-family: 'Open Sans'
+  color: white;
+
+}
+
+div.fill-screen {
+    position:fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    margin-right: 12%;
+    margin-left: 12%;
+    margin-bottom: 12%
+}
+
+img.fill-div {
+    max-width: 99%;
+    max-height: 50%;
+}
+

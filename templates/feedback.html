@@ -4,39 +4,24 @@
 <head>
     <title>Climate Conversations App</title>
  
- 
-    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
- 
-    <link href="http://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main_blue.css') }}"/> 
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/feedback.css') }}"/>  
  
  
 </head>
  
 <body>
-
-    <!-- Begin navigation bar -->
- 
-    <div class="container">
-        <div class="header">
-            <h3 class="text-muted">Climate Conversations App</h3>
-        </div>
-
-        <!-- End navigation bar -->
- 
-        <div class="jumbotron">
-            <!-- <h3>{{ player_name }}:</h3> -->
-            <h3>{{ event }}</h3>
-            <p><a class="btn btn-lg btn-success" href="{{next_button_target}}" role="button">{{ next_button_text }}</a>
-            </p>
-            <iframe src="https://docs.google.com/a/uw.edu/forms/d/e/1FAIpQLSewb1HUEXwyLg17Pk8X7aMpeghqMIMucJKM1wprKuTSkShuSw/viewform?embedded=true" width="560" height="800" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
+  <div>
+    <h3>{{ event }}</h3>
+    <p class="play-again">
+      <a href="{{next_button_target}}" role="button">
+        {{ next_button_text }}</a>
+    </p>
+    
+    <iframe src="https://docs.google.com/a/uw.edu/forms/d/e/1FAIpQLSewb1HUEXwyLg17Pk8X7aMpeghqMIMucJKM1wprKuTSkShuSw/viewform?embedded=true" width="560" height="800" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
             <!-- <text></text> -->
-        </div>
-
-        <footer class="footer">
-            <p>&copy; Company 2015</p>
-        </footer>
- 
-    </div>
+  </div>
 </body>
  
 </html>
