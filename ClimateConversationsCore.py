@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 from random import randint
 import datetime
 import time
@@ -28,6 +29,7 @@ class Conversation():
             self.events = self.load_events_from_excel(events_file)
         else:
             raise ValueError("Error: need to specify an events file (google drive or local spreadsheet).")
+        self.remaining_events = self.events.index
 
         self.n_events = len(self.events['description'])
         if players is not None:
@@ -38,6 +40,8 @@ class Conversation():
 
         self.gen_questions = list(pd.read_table(general_q_file, comment="#", header=None)[0])
         self.q_colnames = self.find_question_cols()
+
+
 
     
     def load_events_from_excel(self, events_file):
@@ -70,13 +74,13 @@ class Conversation():
           You can get this via the "Share" button -> "get shareable link"
         '''
         gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + gdrive_key + "&output=csv"
-        df = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1) # header keeps changing
-        events = df.to_dict()
+        events = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1) # header keeps changing
+        #events = df.to_dict()
         return events
 
     def find_question_cols(self):
         assert self.events is not None
-        columns = self.events.keys()
+        columns = self.events.columns
         q_cols = [c for c in columns if "question" in c]
         if len(q_cols) == 0:
             q_cols = None
@@ -119,14 +123,12 @@ class Conversation():
         #   b) the date of the event makes sense given their age
         e_idx = randint(0, self.n_events-1)
         n_checks = 1
-        while (e_idx in self.asked_events \
-           or int(self.events['start year'][e_idx]) - player.birth_year < self.min_q_age) \
-           and n_checks < self.max_checks:
-            e_idx = randint(0, self.n_events-1)
-            n_checks += 1
-
-        if n_checks >= self.max_checks:
-            return None, None
+        min_year = player.birth_year + self.min_q_age
+        valid_events_by_birthyear = self.events[self.events['start year'] > min_year ].index
+        valid_events = valid_events_by_birthyear.intersection(self.remaining_events)
+    
+        e_idx = int(np.random.choice(valid_events))
+        print e_idx
 
         player.asked_events.append(e_idx)
         self.asked_events.append(e_idx)
@@ -240,4 +242,4 @@ class Player():
         return event_i in self.asked_events
 
     def __str__(self):
-        return self.name + " was born in " + str(self.birth_year)
+        return self.name + " (b: " + str(self.birth_year) + ")"
