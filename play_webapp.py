@@ -103,7 +103,7 @@ def save_game_setup():
     session['user_key'] = user_key  # players
 
     convo = Conversation(n_rounds = n_rounds, players=players,
-                         gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") # Subset of 10 questions
+                         gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") 
                          #gdrive_key="183SABhCyJmVheVwu_1rWzY7jOjvtyfbmG58ow321a3g") # Original set of 70ish questions
                          #events_file="data/firstHistoricClimateEvents.xlsx") # Locally stored copy
     game_cache[user_key] = convo
@@ -118,41 +118,82 @@ def play_game():
     user_key = session['user_key']
     convo = game_cache.get(user_key)
     app.logger.info("Successfully retrieved conversation")
+
+    # Case: The game is out of rounds and/or questions
+    if not convo.game_is_active():
+        app.logger.info("Game returned False for convo.game_is_active(). Ending the game.")
+        return end_game(user_key) 
+
     player = convo.get_current_player()
     app.logger.info("Asked the game for a player, got: %s" % str(player))
 
     # Case: Game returned 'None' for the player.
     #       This usually means that we ran out of rounds, so we end.
     if player is None:
-        app.logger.info("No player returned (probably no more rounds). Serving up 'OUT OF QUESTIONS.'")
-        game_cache.pop(user_key)
-        return render_template("feedback.html", event='Game over! Thanks for playing :)', next_button_text="Play again?", next_button_target="/setup")
+        app.logger.info("No player returned, although the game was still active. Ending the game.")
+        return end_game(user_key)
 
-    incr = convo.increment_player()
-    app.logger.info("Incremented player")
-    e_idx, event = convo.get_next_event(player)
+    if convo.event_is_active():
+        e_idx, event = convo.current_e_idx, convo.current_event
+    else:
+        e_idx, event = convo.get_next_event(player)
 
     # Case: Game returned 'None' for the event index.
-    #       This usually means that there are no more events left for this player.
+    #       There are no more events left for this player.
     #       Currently choosing to just keep going without that player.
     if e_idx is None:
-        app.logger.info("No event index returned. Likely no more questions available for this player. Serving up 'OUT OF QUESTIONS' and removing player")
-        convo.remove_player(player.name, player.birth_year)
-        return render_template("play.html", player_name="", question='Thanks for playing, %s! You made it through all the questions!' % player.name, event="", next_button_text="Keep going with other players", next_button_target="/play")
+        app.logger.info("No more events available for this player. Removing player.")
+        return end_for_player(user_key, player, keep_going=True, message="You made it through all the questions!")
 
-    app.logger.debug("Got event %d: %s" % (e_idx, event))
+    app.logger.info("Got event %d: %s" % (e_idx, event))
     question = convo.get_question(e_idx)
-    app.logger.debug("Got question: %s" % question)
+    app.logger.info("Got question: %s" % question)
+
+    # Case: Game returned 'None' for the question.
+    #       We can increment the player and keep going.
+    if question and str(question).strip() != "":
+        app.logger.info("Asking a question.")
+        app.logger.info("Player %s, event %s, question %s" % (player.name, event, question))
+        return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
+    else:
+        app.logger.info("Failed to ask the question")
+        incr = convo.increment_player()
+        app.logger.info("Incremented player")
+        return play_game()
+
+    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
 
     # Case: Successfully retrieved player, event, and question
     #       Display the question on the page!    
-    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
-    
+    # return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
+
+def end_for_player(user_key, player, keep_going=True, message=""):
+    """
+    Handles game behavior for the case when a player is removed from the game.
+
+    If `keep_going` is `True`, then the player is removed and given a thank you 
+    message, and the game continues.
+
+    If `keep_going` is `False`, then the game ends.
+    """
+    if keep_going:
+        convo = game_cache.get(user_key)
+        app.logger.info("Successfully retrieved conversation")
+        convo.remove_player(player.name, player.birth_year)
+        app.logger.info("Removed player from conversation")
+        return render_template("play.html", player_name="", question='Thanks for playing, %s! %s' % (player.name, message), event="", next_button_text="Keep going with other players", next_button_target="/play")
+    else:
+        return end_game(user_key)
+
+def end_game(user_key):
+    global game_cache
+    game_cache.pop(user_key)
+    return render_template("feedback.html", event='Game over! Thanks for playing :)', next_button_text="Play again?", next_button_target="/setup")
+
 
 if __name__ == "__main__":
     handler = RotatingFileHandler('logs/webapp.log', maxBytes=10000, backupCount=1)
     handler.setLevel(logging.INFO)
-    # formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     formatter = logging.Formatter( "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s ")
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
