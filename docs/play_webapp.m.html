@@ -1052,6 +1052,8 @@ table {
     <li class="set"><h3><a href="#header-functions">Functions</a></h3>
       
   <ul>
+    <li class="mono"><a href="#play_webapp.end_for_player">end_for_player</a></li>
+    <li class="mono"><a href="#play_webapp.end_game">end_game</a></li>
     <li class="mono"><a href="#play_webapp.game_setup">game_setup</a></li>
     <li class="mono"><a href="#play_webapp.main">main</a></li>
     <li class="mono"><a href="#play_webapp.play_game">play_game</a></li>
@@ -1182,7 +1184,7 @@ table {
     <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_key</span>  <span class="c1"># players</span>
 
     <span class="n">convo</span> <span class="o">=</span> <span class="n">Conversation</span><span class="p">(</span><span class="n">n_rounds</span> <span class="o">=</span> <span class="n">n_rounds</span><span class="p">,</span> <span class="n">players</span><span class="o">=</span><span class="n">players</span><span class="p">,</span>
-                         <span class="n">gdrive_key</span><span class="o">=</span><span class="s2">&quot;1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8&quot;</span><span class="p">)</span> <span class="c1"># Subset of 10 questions</span>
+                         <span class="n">gdrive_key</span><span class="o">=</span><span class="s2">&quot;1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8&quot;</span><span class="p">)</span> 
                          <span class="c1">#gdrive_key=&quot;183SABhCyJmVheVwu_1rWzY7jOjvtyfbmG58ow321a3g&quot;) # Original set of 70ish questions</span>
                          <span class="c1">#events_file=&quot;data/firstHistoricClimateEvents.xlsx&quot;) # Locally stored copy</span>
     <span class="n">game_cache</span><span class="p">[</span><span class="n">user_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">convo</span>
@@ -1197,41 +1199,82 @@ table {
     <span class="n">user_key</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user_key&#39;</span><span class="p">]</span>
     <span class="n">convo</span> <span class="o">=</span> <span class="n">game_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully retrieved conversation&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Case: The game is out of rounds and/or questions</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">convo</span><span class="o">.</span><span class="n">game_is_active</span><span class="p">():</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Game returned False for convo.game_is_active(). Ending the game.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span> 
+
     <span class="n">player</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Asked the game for a player, got: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">player</span><span class="p">))</span>
 
     <span class="c1"># Case: Game returned &#39;None&#39; for the player.</span>
     <span class="c1">#       This usually means that we ran out of rounds, so we end.</span>
     <span class="k">if</span> <span class="n">player</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No player returned (probably no more rounds). Serving up &#39;OUT OF QUESTIONS.&#39;&quot;</span><span class="p">)</span>
-        <span class="n">game_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;feedback.html&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s1">&#39;Game over! Thanks for playing :)&#39;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Play again?&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/setup&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No player returned, although the game was still active. Ending the game.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
 
-    <span class="n">incr</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">increment_player</span><span class="p">()</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Incremented player&quot;</span><span class="p">)</span>
-    <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_next_event</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convo</span><span class="o">.</span><span class="n">event_is_active</span><span class="p">():</span>
+        <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">current_e_idx</span><span class="p">,</span> <span class="n">convo</span><span class="o">.</span><span class="n">current_event</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_next_event</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
 
     <span class="c1"># Case: Game returned &#39;None&#39; for the event index.</span>
-    <span class="c1">#       This usually means that there are no more events left for this player.</span>
+    <span class="c1">#       There are no more events left for this player.</span>
     <span class="c1">#       Currently choosing to just keep going without that player.</span>
     <span class="k">if</span> <span class="n">e_idx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No event index returned. Likely no more questions available for this player. Serving up &#39;OUT OF QUESTIONS&#39; and removing player&quot;</span><span class="p">)</span>
-        <span class="n">convo</span><span class="o">.</span><span class="n">remove_player</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="s1">&#39;Thanks for playing, </span><span class="si">%s</span><span class="s1">! You made it through all the questions!&#39;</span> <span class="o">%</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Keep going with other players&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No more events available for this player. Removing player.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_for_player</span><span class="p">(</span><span class="n">user_key</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">keep_going</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;You made it through all the questions!&quot;</span><span class="p">)</span>
 
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Got event </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got event </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span>
     <span class="n">question</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_question</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Got question: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">question</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got question: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">question</span><span class="p">)</span>
+
+    <span class="c1"># Case: Game returned &#39;None&#39; for the question.</span>
+    <span class="c1">#       We can increment the player and keep going.</span>
+    <span class="k">if</span> <span class="n">question</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">question</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Asking a question.&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Player </span><span class="si">%s</span><span class="s2">, event </span><span class="si">%s</span><span class="s2">, question </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Next person&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to ask the question&quot;</span><span class="p">)</span>
+        <span class="n">incr</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">increment_player</span><span class="p">()</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Incremented player&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">play_game</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Next person&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
 
     <span class="c1"># Case: Successfully retrieved player, event, and question</span>
     <span class="c1">#       Display the question on the page!    </span>
-    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Next person&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
-    
+    <span class="c1"># return render_template(&quot;play.html&quot;, player_name=player.name, event=event, question=question, next_button_text=&quot;Next person&quot;, next_button_target=&quot;/play&quot;)</span>
+
+<span class="k">def</span> <span class="nf">end_for_player</span><span class="p">(</span><span class="n">user_key</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">keep_going</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles game behavior for the case when a player is removed from the game.</span>
+
+<span class="sd">    If `keep_going` is `True`, then the player is removed and given a thank you </span>
+<span class="sd">    message, and the game continues.</span>
+
+<span class="sd">    If `keep_going` is `False`, then the game ends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">keep_going</span><span class="p">:</span>
+        <span class="n">convo</span> <span class="o">=</span> <span class="n">game_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully retrieved conversation&quot;</span><span class="p">)</span>
+        <span class="n">convo</span><span class="o">.</span><span class="n">remove_player</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed player from conversation&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="s1">&#39;Thanks for playing, </span><span class="si">%s</span><span class="s1">! </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">message</span><span class="p">),</span> <span class="n">event</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Keep going with other players&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">game_cache</span>
+    <span class="n">game_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;feedback.html&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s1">&#39;Game over! Thanks for playing :)&#39;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Play again?&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/setup&quot;</span><span class="p">)</span>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">handler</span> <span class="o">=</span> <span class="n">RotatingFileHandler</span><span class="p">(</span><span class="s1">&#39;logs/webapp.log&#39;</span><span class="p">,</span> <span class="n">maxBytes</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-    <span class="c1"># formatter = logging.Formatter(&quot;%(asctime)s - %(name)s - %(levelname)s - %(message)s&quot;)</span>
     <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span> <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> | </span><span class="si">%(pathname)s</span><span class="s2">:</span><span class="si">%(lineno)d</span><span class="s2"> | </span><span class="si">%(funcName)s</span><span class="s2"> | </span><span class="si">%(levelname)s</span><span class="s2"> | </span><span class="si">%(message)s</span><span class="s2"> &quot;</span><span class="p">)</span>
     <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
@@ -1264,6 +1307,69 @@ table {
       </div>
 
     <h2 class="section-title" id="header-functions">Functions</h2>
+      
+  <div class="item">
+    <div class="name def" id="play_webapp.end_for_player">
+    <p>def <span class="ident">end_for_player</span>(</p><p>user_key, player, keep_going=True, message=&#39;&#39;)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Handles game behavior for the case when a player is removed from the game.</p>
+<p>If <code>keep_going</code> is <code>True</code>, then the player is removed and given a thank you 
+message, and the game continues.</p>
+<p>If <code>keep_going</code> is <code>False</code>, then the game ends.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-play_webapp.end_for_player', this);">Show source &equiv;</a></p>
+  <div id="source-play_webapp.end_for_player" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">end_for_player</span><span class="p">(</span><span class="n">user_key</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">keep_going</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles game behavior for the case when a player is removed from the game.</span>
+
+<span class="sd">    If `keep_going` is `True`, then the player is removed and given a thank you </span>
+<span class="sd">    message, and the game continues.</span>
+
+<span class="sd">    If `keep_going` is `False`, then the game ends.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">keep_going</span><span class="p">:</span>
+        <span class="n">convo</span> <span class="o">=</span> <span class="n">game_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully retrieved conversation&quot;</span><span class="p">)</span>
+        <span class="n">convo</span><span class="o">.</span><span class="n">remove_player</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed player from conversation&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="s1">&#39;Thanks for playing, </span><span class="si">%s</span><span class="s1">! </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">message</span><span class="p">),</span> <span class="n">event</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Keep going with other players&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+</pre></div>
+
+  </div>
+</div>
+
+  </div>
+  
+      
+  <div class="item">
+    <div class="name def" id="play_webapp.end_game">
+    <p>def <span class="ident">end_game</span>(</p><p>user_key)</p>
+    </div>
+    
+
+    
+  
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-play_webapp.end_game', this);">Show source &equiv;</a></p>
+  <div id="source-play_webapp.end_game" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">game_cache</span>
+    <span class="n">game_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;feedback.html&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s1">&#39;Game over! Thanks for playing :)&#39;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Play again?&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/setup&quot;</span><span class="p">)</span>
+</pre></div>
+
+  </div>
+</div>
+
+  </div>
+  
       
   <div class="item">
     <div class="name def" id="play_webapp.game_setup">
@@ -1327,34 +1433,49 @@ table {
     <span class="n">user_key</span> <span class="o">=</span> <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user_key&#39;</span><span class="p">]</span>
     <span class="n">convo</span> <span class="o">=</span> <span class="n">game_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully retrieved conversation&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Case: The game is out of rounds and/or questions</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">convo</span><span class="o">.</span><span class="n">game_is_active</span><span class="p">():</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Game returned False for convo.game_is_active(). Ending the game.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span> 
+
     <span class="n">player</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
     <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Asked the game for a player, got: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">player</span><span class="p">))</span>
 
     <span class="c1"># Case: Game returned &#39;None&#39; for the player.</span>
     <span class="c1">#       This usually means that we ran out of rounds, so we end.</span>
     <span class="k">if</span> <span class="n">player</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No player returned (probably no more rounds). Serving up &#39;OUT OF QUESTIONS.&#39;&quot;</span><span class="p">)</span>
-        <span class="n">game_cache</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;feedback.html&quot;</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s1">&#39;Game over! Thanks for playing :)&#39;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Play again?&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/setup&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No player returned, although the game was still active. Ending the game.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_game</span><span class="p">(</span><span class="n">user_key</span><span class="p">)</span>
 
-    <span class="n">incr</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">increment_player</span><span class="p">()</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Incremented player&quot;</span><span class="p">)</span>
-    <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_next_event</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">convo</span><span class="o">.</span><span class="n">event_is_active</span><span class="p">():</span>
+        <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">current_e_idx</span><span class="p">,</span> <span class="n">convo</span><span class="o">.</span><span class="n">current_event</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_next_event</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
 
     <span class="c1"># Case: Game returned &#39;None&#39; for the event index.</span>
-    <span class="c1">#       This usually means that there are no more events left for this player.</span>
+    <span class="c1">#       There are no more events left for this player.</span>
     <span class="c1">#       Currently choosing to just keep going without that player.</span>
     <span class="k">if</span> <span class="n">e_idx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No event index returned. Likely no more questions available for this player. Serving up &#39;OUT OF QUESTIONS&#39; and removing player&quot;</span><span class="p">)</span>
-        <span class="n">convo</span><span class="o">.</span><span class="n">remove_player</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="s1">&#39;Thanks for playing, </span><span class="si">%s</span><span class="s1">! You made it through all the questions!&#39;</span> <span class="o">%</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Keep going with other players&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No more events available for this player. Removing player.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">end_for_player</span><span class="p">(</span><span class="n">user_key</span><span class="p">,</span> <span class="n">player</span><span class="p">,</span> <span class="n">keep_going</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;You made it through all the questions!&quot;</span><span class="p">)</span>
 
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Got event </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got event </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e_idx</span><span class="p">,</span> <span class="n">event</span><span class="p">))</span>
     <span class="n">question</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">get_question</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
-    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Got question: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">question</span><span class="p">)</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Got question: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">question</span><span class="p">)</span>
 
-    <span class="c1"># Case: Successfully retrieved player, event, and question</span>
-    <span class="c1">#       Display the question on the page!    </span>
+    <span class="c1"># Case: Game returned &#39;None&#39; for the question.</span>
+    <span class="c1">#       We can increment the player and keep going.</span>
+    <span class="k">if</span> <span class="n">question</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">question</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Asking a question.&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Player </span><span class="si">%s</span><span class="s2">, event </span><span class="si">%s</span><span class="s2">, question </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Next person&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Failed to ask the question&quot;</span><span class="p">)</span>
+        <span class="n">incr</span> <span class="o">=</span> <span class="n">convo</span><span class="o">.</span><span class="n">increment_player</span><span class="p">()</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Incremented player&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">play_game</span><span class="p">()</span>
+
     <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;play.html&quot;</span><span class="p">,</span> <span class="n">player_name</span><span class="o">=</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="n">event</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">,</span> <span class="n">next_button_text</span><span class="o">=</span><span class="s2">&quot;Next person&quot;</span><span class="p">,</span> <span class="n">next_button_target</span><span class="o">=</span><span class="s2">&quot;/play&quot;</span><span class="p">)</span>
 </pre></div>
 
@@ -1453,7 +1574,7 @@ table {
     <span class="n">session</span><span class="p">[</span><span class="s1">&#39;user_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_key</span>  <span class="c1"># players</span>
 
     <span class="n">convo</span> <span class="o">=</span> <span class="n">Conversation</span><span class="p">(</span><span class="n">n_rounds</span> <span class="o">=</span> <span class="n">n_rounds</span><span class="p">,</span> <span class="n">players</span><span class="o">=</span><span class="n">players</span><span class="p">,</span>
-                         <span class="n">gdrive_key</span><span class="o">=</span><span class="s2">&quot;1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8&quot;</span><span class="p">)</span> <span class="c1"># Subset of 10 questions</span>
+                         <span class="n">gdrive_key</span><span class="o">=</span><span class="s2">&quot;1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8&quot;</span><span class="p">)</span> 
                          <span class="c1">#gdrive_key=&quot;183SABhCyJmVheVwu_1rWzY7jOjvtyfbmG58ow321a3g&quot;) # Original set of 70ish questions</span>
                          <span class="c1">#events_file=&quot;data/firstHistoricClimateEvents.xlsx&quot;) # Locally stored copy</span>
     <span class="n">game_cache</span><span class="p">[</span><span class="n">user_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">convo</span>

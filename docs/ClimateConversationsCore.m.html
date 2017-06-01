@@ -1054,7 +1054,8 @@ table {
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.check_for_extra_info">check_for_extra_info</a></li>
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.check_for_image">check_for_image</a></li>
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.choose_general_question">choose_general_question</a></li>
-    <li class="mono"><a href="#ClimateConversationsCore.Conversation.find_question_cols">find_question_cols</a></li>
+    <li class="mono"><a href="#ClimateConversationsCore.Conversation.event_is_active">event_is_active</a></li>
+    <li class="mono"><a href="#ClimateConversationsCore.Conversation.game_is_active">game_is_active</a></li>
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.get_current_player">get_current_player</a></li>
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.get_next_event">get_next_event</a></li>
     <li class="mono"><a href="#ClimateConversationsCore.Conversation.get_question">get_question</a></li>
@@ -1097,11 +1098,16 @@ table {
   
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore" class="source">
-    <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+    <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>  
+<span class="nb">reload</span><span class="p">(</span><span class="n">sys</span><span class="p">)</span>  
+<span class="n">sys</span><span class="o">.</span><span class="n">setdefaultencoding</span><span class="p">(</span><span class="s1">&#39;utf8&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">randint</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/resources&quot;</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
@@ -1112,14 +1118,21 @@ table {
                  <span class="n">events_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">gdrive_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">general_q_file</span><span class="o">=</span><span class="s2">&quot;data/general_questions.txt&quot;</span><span class="p">,</span>
-                 <span class="n">min_age_to_play</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
                  <span class="n">players</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">min_q_age</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span> <span class="o">=</span> <span class="n">n_rounds</span>
+        <span class="sd">&quot;&quot;&quot;Total number of rounds to be played during the game. This should not</span>
+<span class="sd">         typically be changed during the game (see `rounds_left` instead).&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="n">n_rounds</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_age_to_play</span> <span class="o">=</span> <span class="n">min_age_to_play</span>
+        <span class="sd">&quot;&quot;&quot;Number of rounds remaining in the game. Initially equal to </span>
+<span class="sd">        `n_rounds`; depletes to 0 as the game goes on.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&quot;&quot;&quot;List of indices of events that have already been played.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="sd">&quot;&quot;&quot;Index of the current player in the game. Note that this index is</span>
+<span class="sd">        specific to the list of players, not the players themselves, so if a </span>
+<span class="sd">        player is removed from the game, the indices will change relative to </span>
+<span class="sd">        that removal.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gdrive_key</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_gdrive</span><span class="p">(</span><span class="n">gdrive_key</span><span class="p">)</span>
@@ -1127,31 +1140,42 @@ table {
             <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_excel</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error: need to specify an events file (google drive or local spreadsheet).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;List of indices of remaining events. Intially populated with all indices in the events database.&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">])</span>
+        <span class="sd">&quot;&quot;&quot;Total number of events in the original events database.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">players</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">players</span> <span class="o">=</span> <span class="n">players</span>
+            <span class="sd">&quot;&quot;&quot;List of Player objects representing people playing the game.&quot;&quot;&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">**</span><span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span> <span class="o">=</span> <span class="n">min_q_age</span>
+            <span class="sd">&quot;&quot;&quot;Number of players currently in the game.&quot;&quot;&quot;</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span> <span class="o">=</span> <span class="n">min_q_age</span>
+        <span class="sd">&quot;&quot;&quot;\&quot;You must be this tall to ride this ride.\&quot; -- Players won&#39;t be </span>
+<span class="sd">        asked questions about events that happened before they are this old.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gen_questions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">general_q_file</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_question_cols</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;List of general questions that could be asked in the context of any event.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_question_cols</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;List of column names that contain questions, e.g. \&quot;example question 1\&quot;.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="sd">&quot;&quot;&quot;Value is False when there are no more valid questions for the players or there are no more rounds.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
 
     
     <span class="k">def</span> <span class="nf">load_events_from_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events_file</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Load event spreadsheet from an excel file.</span>
 
-<span class="sd">        #TODO write format this should be in here</span>
+<span class="sd">        ## TODO write expected format here</span>
 
 <span class="sd">        **Input**: filename of excel spreadsheet</span>
 
-<span class="sd">        **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">        **Output**: dataframe of events</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">xlsx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="c1">#</span>
         <span class="k">return</span> <span class="n">events</span>
 
     
@@ -1159,27 +1183,58 @@ table {
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Load event spreadsheet directly from google drive.</span>
 
+<span class="sd">        ## TODO document expected format here</span>
+
 <span class="sd">        **Input**: gdrive key</span>
 
-<span class="sd">        **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">        **Output**: dataframe of events</span>
 
 <span class="sd">          The `gdrive_key` is the code in the URL after `../spreadsheets/d/`</span>
 <span class="sd">          Example: `https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060`</span>
+<span class="sd">          </span>
 <span class="sd">          The key for the above url would be &quot;`1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg`&quot;</span>
-<span class="sd">          You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot;</span>
+<span class="sd">          </span>
+<span class="sd">          You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot; in Google sheets.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">gdrive_url</span> <span class="o">=</span> <span class="s2">&quot;https://docs.google.com/spreadsheet/ccc?key=&quot;</span> <span class="o">+</span> <span class="n">gdrive_key</span> <span class="o">+</span> <span class="s2">&quot;&amp;output=csv&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
+        <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">return</span> <span class="n">events</span>
 
-    <span class="k">def</span> <span class="nf">find_question_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_find_question_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search the events database column names for the question columns.</span>
+<span class="sd">        This function will change as the events database evolves.</span>
+
+<span class="sd">        **Returns:** list of column names of questions in `self.events`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">columns</span>
         <span class="n">q_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;question&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">q_cols</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">q_cols</span>
+
+    <span class="k">def</span> <span class="nf">game_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this function to check if the game can still be played.</span>
+
+<span class="sd">        The variable `game_is_active` will be set to False when there are no more</span>
+<span class="sd">        valid questions for the players or there are no more rounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span>
+
+    <span class="k">def</span> <span class="nf">event_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this function to check if the current player has an active event.</span>
+<span class="sd">        This will return True as long as the last call to get a question </span>
+<span class="sd">        actually returned a question. </span>
+
+<span class="sd">        This does not guarantee that another question exists. This just tells </span>
+<span class="sd">        us that it is okay to ask the game for a question, otherwise, we need</span>
+<span class="sd">        to get a new player and a new event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">add_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
@@ -1195,15 +1250,10 @@ table {
         <span class="k">return</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">get_current_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
 
     <span class="c1"># TODO: This should be optimized as there are more and more events</span>
     <span class="c1"># TODO: As more event types are added, split this into multiple functions</span>
@@ -1218,17 +1268,18 @@ table {
         <span class="c1">#   b) the date of the event makes sense given their age</span>
         <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">n_checks</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">e_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> \
-           <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">])</span> <span class="o">-</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span><span class="p">)</span> \
-           <span class="ow">and</span> <span class="n">n_checks</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
-            <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">n_checks</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">min_year</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span>
+        <span class="n">valid_events_by_birthyear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_year</span> <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">valid_events</span> <span class="o">=</span> <span class="n">valid_events_by_birthyear</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">n_checks</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+    
+        <span class="n">e_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">valid_events</span><span class="p">))</span>
 
         <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
 
         <span class="n">e_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
         <span class="n">e_desc</span> <span class="o">=</span> <span class="n">e_desc</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -1236,6 +1287,8 @@ table {
 
         <span class="c1"># Return question</span>
         <span class="n">e</span> <span class="o">=</span> <span class="s2">&quot;In the year &quot;</span> <span class="o">+</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; turned &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e_age</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="n">e_desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="n">e_idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="n">e</span>
         <span class="k">return</span> <span class="n">e_idx</span><span class="p">,</span> <span class="n">e</span>
 
     <span class="sd">&#39;&#39;&#39; Randomly select a general question from the list.</span>
@@ -1255,6 +1308,18 @@ table {
             <span class="k">return</span> <span class="n">q</span>
 
     <span class="k">def</span> <span class="nf">get_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the next question for the specified event, or return None if </span>
+<span class="sd">        no question exists or is left. If no questions are left, then this </span>
+<span class="sd">        function also sets the `current_e_idx` to None so we know that we need </span>
+<span class="sd">        to choose a new event.</span>
+
+<span class="sd">        **Input:** `e_idx`, the index of the desired event</span>
+
+<span class="sd">        **Output:** The question formatted as a string.</span>
+
+<span class="sd">        Note that question formatting (i.e. with a year/age) is currently not supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span>
 
         <span class="n">e_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
@@ -1266,12 +1331,29 @@ table {
 
         <span class="c1"># Otherwise, if we have more than 1 question column, assume it&#39;s the </span>
         <span class="c1"># database with 3 questions.</span>
-        <span class="c1"># For now, format it into one big long string with line breaks.</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 1&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 2&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 3&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span><span class="p">:</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">colname</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">])[</span><span class="n">e_idx</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">colname</span>
+                    <span class="k">return</span> <span class="n">q</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+            <span class="c1"># q1 = self.events[&quot;example question 1&quot;][e_idx]</span>
+            <span class="c1"># q2 = self.events[&quot;example question 2&quot;][e_idx]</span>
+            <span class="c1"># q3 = self.events[&quot;example question 3&quot;][e_idx]</span>
+
+            <span class="c1"># if q1.contains(&quot;asked&quot;):</span>
+            <span class="c1">#     #</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     self.events[&quot;example question 1&quot;][e_idx] = &quot;asked&quot;</span>
+            <span class="c1">#     q = q1</span>
+
+            <span class="c1"># q = &quot;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&quot; % (q1, q2, q3)</span>
 
         <span class="k">return</span> <span class="n">q</span>  
         
@@ -1294,27 +1376,40 @@ table {
             <span class="k">return</span> <span class="bp">None</span>
        
     <span class="k">def</span> <span class="nf">increment_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates `self.current_player_idx` if there are players left in the </span>
+<span class="sd">        current round or there are more rounds to play. </span>
+
+<span class="sd">        If there are no more rounds, set the `game_is_active` variable to False</span>
+<span class="sd">        indicating that the game is over and return False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">p_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># If we have not reached the end of the round, move to the next player index</span>
         <span class="k">if</span> <span class="n">p_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="n">p_idx</span>
-            <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
         <span class="c1"># If we have reached the end of the round, check if there are more rounds</span>
         <span class="k">elif</span> <span class="n">p_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
             <span class="c1"># If there are more rounds to play, start from 1st player &amp; decrement the rounds left </span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">return</span> <span class="bp">True</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
             <span class="c1"># If there are no more rounds to play, we cannot increment the player</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span>
-                <span class="k">return</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_is_active</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">return</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">restart_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repeats_allowed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the game </span>
+<span class="sd">        **Input**: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Reset number of rounds and possibly Q&#39;s that have already been asked</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span>
         <span class="k">if</span> <span class="n">repeats_allowed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
                 <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1336,10 +1431,10 @@ table {
         <span class="k">return</span> <span class="n">year</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span>
 
     <span class="k">def</span> <span class="nf">already_asked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_i</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="n">asked_events</span>
+        <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; was born in &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; (b: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
 </pre></div>
 
   </div>
@@ -1365,14 +1460,21 @@ table {
                  <span class="n">events_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">gdrive_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">general_q_file</span><span class="o">=</span><span class="s2">&quot;data/general_questions.txt&quot;</span><span class="p">,</span>
-                 <span class="n">min_age_to_play</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
                  <span class="n">players</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">min_q_age</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span> <span class="o">=</span> <span class="n">n_rounds</span>
+        <span class="sd">&quot;&quot;&quot;Total number of rounds to be played during the game. This should not</span>
+<span class="sd">         typically be changed during the game (see `rounds_left` instead).&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="n">n_rounds</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_age_to_play</span> <span class="o">=</span> <span class="n">min_age_to_play</span>
+        <span class="sd">&quot;&quot;&quot;Number of rounds remaining in the game. Initially equal to </span>
+<span class="sd">        `n_rounds`; depletes to 0 as the game goes on.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="sd">&quot;&quot;&quot;List of indices of events that have already been played.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="sd">&quot;&quot;&quot;Index of the current player in the game. Note that this index is</span>
+<span class="sd">        specific to the list of players, not the players themselves, so if a </span>
+<span class="sd">        player is removed from the game, the indices will change relative to </span>
+<span class="sd">        that removal.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gdrive_key</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_gdrive</span><span class="p">(</span><span class="n">gdrive_key</span><span class="p">)</span>
@@ -1380,31 +1482,42 @@ table {
             <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_excel</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error: need to specify an events file (google drive or local spreadsheet).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;List of indices of remaining events. Intially populated with all indices in the events database.&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">])</span>
+        <span class="sd">&quot;&quot;&quot;Total number of events in the original events database.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">players</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">players</span> <span class="o">=</span> <span class="n">players</span>
+            <span class="sd">&quot;&quot;&quot;List of Player objects representing people playing the game.&quot;&quot;&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">**</span><span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span> <span class="o">=</span> <span class="n">min_q_age</span>
+            <span class="sd">&quot;&quot;&quot;Number of players currently in the game.&quot;&quot;&quot;</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span> <span class="o">=</span> <span class="n">min_q_age</span>
+        <span class="sd">&quot;&quot;&quot;\&quot;You must be this tall to ride this ride.\&quot; -- Players won&#39;t be </span>
+<span class="sd">        asked questions about events that happened before they are this old.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gen_questions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">general_q_file</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_question_cols</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;List of general questions that could be asked in the context of any event.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_question_cols</span><span class="p">()</span>
+        <span class="sd">&quot;&quot;&quot;List of column names that contain questions, e.g. \&quot;example question 1\&quot;.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="sd">&quot;&quot;&quot;Value is False when there are no more valid questions for the players or there are no more rounds.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
 
     
     <span class="k">def</span> <span class="nf">load_events_from_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events_file</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Load event spreadsheet from an excel file.</span>
 
-<span class="sd">        #TODO write format this should be in here</span>
+<span class="sd">        ## TODO write expected format here</span>
 
 <span class="sd">        **Input**: filename of excel spreadsheet</span>
 
-<span class="sd">        **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">        **Output**: dataframe of events</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">xlsx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="c1">#</span>
         <span class="k">return</span> <span class="n">events</span>
 
     
@@ -1412,27 +1525,58 @@ table {
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Load event spreadsheet directly from google drive.</span>
 
+<span class="sd">        ## TODO document expected format here</span>
+
 <span class="sd">        **Input**: gdrive key</span>
 
-<span class="sd">        **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">        **Output**: dataframe of events</span>
 
 <span class="sd">          The `gdrive_key` is the code in the URL after `../spreadsheets/d/`</span>
 <span class="sd">          Example: `https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060`</span>
+<span class="sd">          </span>
 <span class="sd">          The key for the above url would be &quot;`1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg`&quot;</span>
-<span class="sd">          You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot;</span>
+<span class="sd">          </span>
+<span class="sd">          You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot; in Google sheets.</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">gdrive_url</span> <span class="o">=</span> <span class="s2">&quot;https://docs.google.com/spreadsheet/ccc?key=&quot;</span> <span class="o">+</span> <span class="n">gdrive_key</span> <span class="o">+</span> <span class="s2">&quot;&amp;output=csv&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
-        <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
+        <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">return</span> <span class="n">events</span>
 
-    <span class="k">def</span> <span class="nf">find_question_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_find_question_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search the events database column names for the question columns.</span>
+<span class="sd">        This function will change as the events database evolves.</span>
+
+<span class="sd">        **Returns:** list of column names of questions in `self.events`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">columns</span>
         <span class="n">q_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;question&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">q_cols</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="k">return</span> <span class="n">q_cols</span>
+
+    <span class="k">def</span> <span class="nf">game_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this function to check if the game can still be played.</span>
+
+<span class="sd">        The variable `game_is_active` will be set to False when there are no more</span>
+<span class="sd">        valid questions for the players or there are no more rounds.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span>
+
+    <span class="k">def</span> <span class="nf">event_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call this function to check if the current player has an active event.</span>
+<span class="sd">        This will return True as long as the last call to get a question </span>
+<span class="sd">        actually returned a question. </span>
+
+<span class="sd">        This does not guarantee that another question exists. This just tells </span>
+<span class="sd">        us that it is okay to ask the game for a question, otherwise, we need</span>
+<span class="sd">        to get a new player and a new event.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">add_player</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
@@ -1448,15 +1592,10 @@ table {
         <span class="k">return</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">get_current_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
 
     <span class="c1"># TODO: This should be optimized as there are more and more events</span>
     <span class="c1"># TODO: As more event types are added, split this into multiple functions</span>
@@ -1471,17 +1610,18 @@ table {
         <span class="c1">#   b) the date of the event makes sense given their age</span>
         <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">n_checks</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">while</span> <span class="p">(</span><span class="n">e_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> \
-           <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">])</span> <span class="o">-</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span><span class="p">)</span> \
-           <span class="ow">and</span> <span class="n">n_checks</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
-            <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">n_checks</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">min_year</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span>
+        <span class="n">valid_events_by_birthyear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_year</span> <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">valid_events</span> <span class="o">=</span> <span class="n">valid_events_by_birthyear</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">n_checks</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+    
+        <span class="n">e_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">valid_events</span><span class="p">))</span>
 
         <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
 
         <span class="n">e_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
         <span class="n">e_desc</span> <span class="o">=</span> <span class="n">e_desc</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -1489,6 +1629,8 @@ table {
 
         <span class="c1"># Return question</span>
         <span class="n">e</span> <span class="o">=</span> <span class="s2">&quot;In the year &quot;</span> <span class="o">+</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; turned &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e_age</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="n">e_desc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="n">e_idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="n">e</span>
         <span class="k">return</span> <span class="n">e_idx</span><span class="p">,</span> <span class="n">e</span>
 
     <span class="sd">&#39;&#39;&#39; Randomly select a general question from the list.</span>
@@ -1508,6 +1650,18 @@ table {
             <span class="k">return</span> <span class="n">q</span>
 
     <span class="k">def</span> <span class="nf">get_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve the next question for the specified event, or return None if </span>
+<span class="sd">        no question exists or is left. If no questions are left, then this </span>
+<span class="sd">        function also sets the `current_e_idx` to None so we know that we need </span>
+<span class="sd">        to choose a new event.</span>
+
+<span class="sd">        **Input:** `e_idx`, the index of the desired event</span>
+
+<span class="sd">        **Output:** The question formatted as a string.</span>
+
+<span class="sd">        Note that question formatting (i.e. with a year/age) is currently not supported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span>
 
         <span class="n">e_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
@@ -1519,12 +1673,29 @@ table {
 
         <span class="c1"># Otherwise, if we have more than 1 question column, assume it&#39;s the </span>
         <span class="c1"># database with 3 questions.</span>
-        <span class="c1"># For now, format it into one big long string with line breaks.</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 1&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 2&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 3&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span><span class="p">:</span>
+                <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">colname</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">])[</span><span class="n">e_idx</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">colname</span>
+                    <span class="k">return</span> <span class="n">q</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
+
+            <span class="c1"># q1 = self.events[&quot;example question 1&quot;][e_idx]</span>
+            <span class="c1"># q2 = self.events[&quot;example question 2&quot;][e_idx]</span>
+            <span class="c1"># q3 = self.events[&quot;example question 3&quot;][e_idx]</span>
+
+            <span class="c1"># if q1.contains(&quot;asked&quot;):</span>
+            <span class="c1">#     #</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     self.events[&quot;example question 1&quot;][e_idx] = &quot;asked&quot;</span>
+            <span class="c1">#     q = q1</span>
+
+            <span class="c1"># q = &quot;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&quot; % (q1, q2, q3)</span>
 
         <span class="k">return</span> <span class="n">q</span>  
         
@@ -1547,27 +1718,40 @@ table {
             <span class="k">return</span> <span class="bp">None</span>
        
     <span class="k">def</span> <span class="nf">increment_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates `self.current_player_idx` if there are players left in the </span>
+<span class="sd">        current round or there are more rounds to play. </span>
+
+<span class="sd">        If there are no more rounds, set the `game_is_active` variable to False</span>
+<span class="sd">        indicating that the game is over and return False.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">p_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># If we have not reached the end of the round, move to the next player index</span>
         <span class="k">if</span> <span class="n">p_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="n">p_idx</span>
-            <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
         <span class="c1"># If we have reached the end of the round, check if there are more rounds</span>
         <span class="k">elif</span> <span class="n">p_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
             <span class="c1"># If there are more rounds to play, start from 1st player &amp; decrement the rounds left </span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">return</span> <span class="bp">True</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
             <span class="c1"># If there are no more rounds to play, we cannot increment the player</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span>
-                <span class="k">return</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_is_active</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="k">return</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">restart_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repeats_allowed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the game </span>
+<span class="sd">        **Input**: </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Reset number of rounds and possibly Q&#39;s that have already been asked</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span>
         <span class="k">if</span> <span class="n">repeats_allowed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
                 <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
@@ -1583,7 +1767,29 @@ table {
           </ul>
           <h3>Instance variables</h3>
             <div class="item">
+            <p id="ClimateConversationsCore.Conversation.active_game" class="name">var <span class="ident">active_game</span></p>
+            
+
+            
+  
+    <div class="desc"><p>Value is False when there are no more valid questions for the players or there are no more rounds.</p></div>
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
             <p id="ClimateConversationsCore.Conversation.asked_events" class="name">var <span class="ident">asked_events</span></p>
+            
+
+            
+  
+    <div class="desc"><p>List of indices of events that have already been played.</p></div>
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="ClimateConversationsCore.Conversation.current_e_idx" class="name">var <span class="ident">current_e_idx</span></p>
             
 
             
@@ -1598,6 +1804,10 @@ table {
 
             
   
+    <div class="desc"><p>Index of the current player in the game. Note that this index is
+specific to the list of players, not the players themselves, so if a 
+player is removed from the game, the indices will change relative to 
+that removal.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1608,26 +1818,7 @@ table {
 
             
   
-  <div class="source_cont">
-</div>
-
-            </div>
-            <div class="item">
-            <p id="ClimateConversationsCore.Conversation.max_checks" class="name">var <span class="ident">max_checks</span></p>
-            
-
-            
-  
-  <div class="source_cont">
-</div>
-
-            </div>
-            <div class="item">
-            <p id="ClimateConversationsCore.Conversation.min_age_to_play" class="name">var <span class="ident">min_age_to_play</span></p>
-            
-
-            
-  
+    <div class="desc"><p>List of general questions that could be asked in the context of any event.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1638,6 +1829,8 @@ table {
 
             
   
+    <div class="desc"><p>"You must be this tall to ride this ride." -- Players won't be 
+asked questions about events that happened before they are this old.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1648,6 +1841,7 @@ table {
 
             
   
+    <div class="desc"><p>Total number of events in the original events database.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1658,6 +1852,8 @@ table {
 
             
   
+    <div class="desc"><p>Total number of rounds to be played during the game. This should not
+typically be changed during the game (see <code>rounds_left</code> instead).</p></div>
   <div class="source_cont">
 </div>
 
@@ -1668,6 +1864,18 @@ table {
 
             
   
+    <div class="desc"><p>List of column names that contain questions, e.g. "example question 1".</p></div>
+  <div class="source_cont">
+</div>
+
+            </div>
+            <div class="item">
+            <p id="ClimateConversationsCore.Conversation.remaining_events" class="name">var <span class="ident">remaining_events</span></p>
+            
+
+            
+  
+    <div class="desc"><p>List of indices of remaining events. Intially populated with all indices in the events database.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1678,6 +1886,8 @@ table {
 
             
   
+    <div class="desc"><p>Number of rounds remaining in the game. Initially equal to 
+<code>n_rounds</code>; depletes to 0 as the game goes on.</p></div>
   <div class="source_cont">
 </div>
 
@@ -1686,7 +1896,7 @@ table {
             
   <div class="item">
     <div class="name def" id="ClimateConversationsCore.Conversation.__init__">
-    <p>def <span class="ident">__init__</span>(</p><p>self, n_rounds=5, events_file=None, gdrive_key=None, general_q_file=&#39;data/general_questions.txt&#39;, min_age_to_play=7, players=None, min_q_age=10)</p>
+    <p>def <span class="ident">__init__</span>(</p><p>self, n_rounds=5, events_file=None, gdrive_key=None, general_q_file=&#39;data/general_questions.txt&#39;, players=None, min_q_age=10)</p>
     </div>
     
 
@@ -1700,28 +1910,46 @@ table {
              <span class="n">events_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
              <span class="n">gdrive_key</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
              <span class="n">general_q_file</span><span class="o">=</span><span class="s2">&quot;data/general_questions.txt&quot;</span><span class="p">,</span>
-             <span class="n">min_age_to_play</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
              <span class="n">players</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
              <span class="n">min_q_age</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span> <span class="o">=</span> <span class="n">n_rounds</span>
+    <span class="sd">&quot;&quot;&quot;Total number of rounds to be played during the game. This should not</span>
+<span class="sd">     typically be changed during the game (see `rounds_left` instead).&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="n">n_rounds</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">min_age_to_play</span> <span class="o">=</span> <span class="n">min_age_to_play</span>
+    <span class="sd">&quot;&quot;&quot;Number of rounds remaining in the game. Initially equal to </span>
+<span class="sd">    `n_rounds`; depletes to 0 as the game goes on.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="sd">&quot;&quot;&quot;List of indices of events that have already been played.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="sd">&quot;&quot;&quot;Index of the current player in the game. Note that this index is</span>
+<span class="sd">    specific to the list of players, not the players themselves, so if a </span>
+<span class="sd">    player is removed from the game, the indices will change relative to </span>
+<span class="sd">    that removal.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">gdrive_key</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_gdrive</span><span class="p">(</span><span class="n">gdrive_key</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">events_file</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_events_from_excel</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error: need to specify an events file (google drive or local spreadsheet).&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="sd">&quot;&quot;&quot;List of indices of remaining events. Intially populated with all indices in the events database.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">])</span>
+    <span class="sd">&quot;&quot;&quot;Total number of events in the original events database.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">players</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">players</span> <span class="o">=</span> <span class="n">players</span>
+        <span class="sd">&quot;&quot;&quot;List of Player objects representing people playing the game.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">**</span><span class="mi">2</span>
+        <span class="sd">&quot;&quot;&quot;Number of players currently in the game.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span> <span class="o">=</span> <span class="n">min_q_age</span>
+    <span class="sd">&quot;&quot;&quot;\&quot;You must be this tall to ride this ride.\&quot; -- Players won&#39;t be </span>
+<span class="sd">    asked questions about events that happened before they are this old.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">gen_questions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="n">general_q_file</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_question_cols</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;List of general questions that could be asked in the context of any event.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_question_cols</span><span class="p">()</span>
+    <span class="sd">&quot;&quot;&quot;List of column names that contain questions, e.g. \&quot;example question 1\&quot;.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="sd">&quot;&quot;&quot;Value is False when there are no more valid questions for the players or there are no more rounds.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
 </pre></div>
 
   </div>
@@ -1834,23 +2062,61 @@ table {
   
             
   <div class="item">
-    <div class="name def" id="ClimateConversationsCore.Conversation.find_question_cols">
-    <p>def <span class="ident">find_question_cols</span>(</p><p>self)</p>
+    <div class="name def" id="ClimateConversationsCore.Conversation.event_is_active">
+    <p>def <span class="ident">event_is_active</span>(</p><p>self)</p>
     </div>
     
 
     
   
+    <div class="desc"><p>Call this function to check if the current player has an active event.
+This will return True as long as the last call to get a question 
+actually returned a question. </p>
+<p>This does not guarantee that another question exists. This just tells 
+us that it is okay to ask the game for a question, otherwise, we need
+to get a new player and a new event.</p></div>
   <div class="source_cont">
-  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.find_question_cols', this);">Show source &equiv;</a></p>
-  <div id="source-ClimateConversationsCore.Conversation.find_question_cols" class="source">
-    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">find_question_cols</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
-    <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-    <span class="n">q_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="s2">&quot;question&quot;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">q_cols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">q_cols</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="k">return</span> <span class="n">q_cols</span>
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.event_is_active', this);">Show source &equiv;</a></p>
+  <div id="source-ClimateConversationsCore.Conversation.event_is_active" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">event_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call this function to check if the current player has an active event.</span>
+<span class="sd">    This will return True as long as the last call to get a question </span>
+<span class="sd">    actually returned a question. </span>
+<span class="sd">    This does not guarantee that another question exists. This just tells </span>
+<span class="sd">    us that it is okay to ask the game for a question, otherwise, we need</span>
+<span class="sd">    to get a new player and a new event.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+</pre></div>
+
+  </div>
+</div>
+
+  </div>
+  
+            
+  <div class="item">
+    <div class="name def" id="ClimateConversationsCore.Conversation.game_is_active">
+    <p>def <span class="ident">game_is_active</span>(</p><p>self)</p>
+    </div>
+    
+
+    
+  
+    <div class="desc"><p>Call this function to check if the game can still be played.</p>
+<p>The variable <code>game_is_active</code> will be set to False when there are no more
+valid questions for the players or there are no more rounds.</p></div>
+  <div class="source_cont">
+  <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.game_is_active', this);">Show source &equiv;</a></p>
+  <div id="source-ClimateConversationsCore.Conversation.game_is_active" class="source">
+    <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">game_is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Call this function to check if the game can still be played.</span>
+<span class="sd">    The variable `game_is_active` will be set to False when there are no more</span>
+<span class="sd">    valid questions for the players or there are no more rounds.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">active_game</span>
 </pre></div>
 
   </div>
@@ -1871,15 +2137,10 @@ table {
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.get_current_player', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.get_current_player" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_current_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span><span class="p">]</span>
 </pre></div>
 
   </div>
@@ -1906,20 +2167,23 @@ table {
     <span class="c1">#   b) the date of the event makes sense given their age</span>
     <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">n_checks</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="k">while</span> <span class="p">(</span><span class="n">e_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> \
-       <span class="ow">or</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">])</span> <span class="o">-</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span><span class="p">)</span> \
-       <span class="ow">and</span> <span class="n">n_checks</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
-        <span class="n">e_idx</span> <span class="o">=</span> <span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">n_checks</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="n">n_checks</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_checks</span><span class="p">:</span>
+    <span class="n">min_year</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">birth_year</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_q_age</span>
+    <span class="n">valid_events_by_birthyear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">min_year</span> <span class="p">]</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">valid_events</span> <span class="o">=</span> <span class="n">valid_events_by_birthyear</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_events</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+    <span class="n">e_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">valid_events</span><span class="p">))</span>
     <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
     <span class="n">e_desc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
     <span class="n">e_desc</span> <span class="o">=</span> <span class="n">e_desc</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="n">e_age</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">get_age_in_year</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]))</span>
     <span class="c1"># Return question</span>
     <span class="n">e</span> <span class="o">=</span> <span class="s2">&quot;In the year &quot;</span> <span class="o">+</span> <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; turned &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e_age</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span> <span class="o">+</span> <span class="n">e_desc</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="n">e_idx</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_event</span> <span class="o">=</span> <span class="n">e</span>
     <span class="k">return</span> <span class="n">e_idx</span><span class="p">,</span> <span class="n">e</span>
 </pre></div>
 
@@ -1937,10 +2201,26 @@ table {
 
     
   
+    <div class="desc"><p>Retrieve the next question for the specified event, or return None if 
+no question exists or is left. If no questions are left, then this 
+function also sets the <code>current_e_idx</code> to None so we know that we need 
+to choose a new event.</p>
+<p><strong>Input:</strong> <code>e_idx</code>, the index of the desired event</p>
+<p><strong>Output:</strong> The question formatted as a string.</p>
+<p>Note that question formatting (i.e. with a year/age) is currently not supported.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.get_question', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.get_question" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">get_question</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e_idx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieve the next question for the specified event, or return None if </span>
+<span class="sd">    no question exists or is left. If no questions are left, then this </span>
+<span class="sd">    function also sets the `current_e_idx` to None so we know that we need </span>
+<span class="sd">    to choose a new event.</span>
+<span class="sd">    **Input:** `e_idx`, the index of the desired event</span>
+<span class="sd">    **Output:** The question formatted as a string.</span>
+<span class="sd">    Note that question formatting (i.e. with a year/age) is currently not supported.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span>
     <span class="n">e_year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;start year&#39;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
     <span class="c1"># If we have just one question column, assume it&#39;s the old db</span>
@@ -1949,12 +2229,25 @@ table {
         <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">choose_general_question</span><span class="p">(</span><span class="n">e_year</span><span class="p">)</span>
     <span class="c1"># Otherwise, if we have more than 1 question column, assume it&#39;s the </span>
     <span class="c1"># database with 3 questions.</span>
-    <span class="c1"># For now, format it into one big long string with line breaks.</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 1&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-        <span class="n">q2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 2&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-        <span class="n">q3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s2">&quot;example question 3&quot;</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&lt;br/&gt;&lt;p&gt;</span><span class="si">%s</span><span class="s2">&lt;/p&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q3</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">colname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_colnames</span><span class="p">:</span>
+            <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="n">colname</span><span class="p">][</span><span class="n">e_idx</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">colname</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">])[</span><span class="n">e_idx</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">e_idx</span><span class="p">,</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">colname</span>
+                <span class="k">return</span> <span class="n">q</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">current_e_idx</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="bp">None</span>
+        <span class="c1"># q1 = self.events[&quot;example question 1&quot;][e_idx]</span>
+        <span class="c1"># q2 = self.events[&quot;example question 2&quot;][e_idx]</span>
+        <span class="c1"># q3 = self.events[&quot;example question 3&quot;][e_idx]</span>
+        <span class="c1"># if q1.contains(&quot;asked&quot;):</span>
+        <span class="c1">#     #</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     self.events[&quot;example question 1&quot;][e_idx] = &quot;asked&quot;</span>
+        <span class="c1">#     q = q1</span>
+        <span class="c1"># q = &quot;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&lt;br/&gt;&lt;p&gt;%s&lt;/p&gt;&quot; % (q1, q2, q3)</span>
     <span class="k">return</span> <span class="n">q</span>  
 </pre></div>
 
@@ -1972,26 +2265,36 @@ table {
 
     
   
+    <div class="desc"><p>Updates <code>self.current_player_idx</code> if there are players left in the 
+current round or there are more rounds to play. </p>
+<p>If there are no more rounds, set the <code>game_is_active</code> variable to False
+indicating that the game is over and return False.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.increment_player', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.increment_player" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">increment_player</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Updates `self.current_player_idx` if there are players left in the </span>
+<span class="sd">    current round or there are more rounds to play. </span>
+<span class="sd">    If there are no more rounds, set the `game_is_active` variable to False</span>
+<span class="sd">    indicating that the game is over and return False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">p_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="c1"># If we have not reached the end of the round, move to the next player index</span>
     <span class="k">if</span> <span class="n">p_idx</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="n">p_idx</span>
-        <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
     <span class="c1"># If we have reached the end of the round, check if there are more rounds</span>
     <span class="k">elif</span> <span class="n">p_idx</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_players</span><span class="p">:</span>
         <span class="c1"># If there are more rounds to play, start from 1st player &amp; decrement the rounds left </span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">-=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">current_player_idx</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">return</span> <span class="bp">True</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_player</span><span class="p">()</span>
         <span class="c1"># If there are no more rounds to play, we cannot increment the player</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">print</span> <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span>
-            <span class="k">return</span> <span class="bp">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">game_is_active</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">None</span>
 </pre></div>
 
   </div>
@@ -2009,22 +2312,22 @@ table {
     
   
     <div class="desc"><p>Load event spreadsheet from an excel file.</p>
-<h1>TODO write format this should be in here</h1>
+<h2>TODO write expected format here</h2>
 <p><strong>Input</strong>: filename of excel spreadsheet</p>
-<p><strong>Output</strong>: dictionary of events (keys: event id, values: event information)</p></div>
+<p><strong>Output</strong>: dataframe of events</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.load_events_from_excel', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.load_events_from_excel" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">load_events_from_excel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events_file</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Load event spreadsheet from an excel file.</span>
-<span class="sd">    #TODO write format this should be in here</span>
+<span class="sd">    ## TODO write expected format here</span>
 <span class="sd">    **Input**: filename of excel spreadsheet</span>
-<span class="sd">    **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">    **Output**: dataframe of events</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">xlsx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelFile</span><span class="p">(</span><span class="n">events_file</span><span class="p">)</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">xlsx</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xlsx</span><span class="o">.</span><span class="n">sheet_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="c1">#</span>
     <span class="k">return</span> <span class="n">events</span>
 </pre></div>
 
@@ -2043,28 +2346,32 @@ table {
     
   
     <div class="desc"><p>Load event spreadsheet directly from google drive.</p>
+<h2>TODO document expected format here</h2>
 <p><strong>Input</strong>: gdrive key</p>
-<p><strong>Output</strong>: dictionary of events (keys: event id, values: event information)</p>
+<p><strong>Output</strong>: dataframe of events</p>
 <p>The <code>gdrive_key</code> is the code in the URL after <code>../spreadsheets/d/</code>
-  Example: <code>https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060</code>
-  The key for the above url would be "<code>1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg</code>"
-  You can get this via the "Share" button -&gt; "get shareable link"</p></div>
+  Example: <code>https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060</code></p>
+<p>The key for the above url would be "<code>1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg</code>"</p>
+<p>You can get this via the "Share" button -&gt; "get shareable link" in Google sheets.</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.load_events_from_gdrive', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.load_events_from_gdrive" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">load_events_from_gdrive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gdrive_key</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Load event spreadsheet directly from google drive.</span>
+<span class="sd">    ## TODO document expected format here</span>
 <span class="sd">    **Input**: gdrive key</span>
-<span class="sd">    **Output**: dictionary of events (keys: event id, values: event information)</span>
+<span class="sd">    **Output**: dataframe of events</span>
 <span class="sd">      The `gdrive_key` is the code in the URL after `../spreadsheets/d/`</span>
 <span class="sd">      Example: `https://docs.google.com/spreadsheets/d/1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg/edit#gid=630120060`</span>
+<span class="sd">      </span>
 <span class="sd">      The key for the above url would be &quot;`1sjO-EcVfFZR8aJIT7br3UxYSmsVpoPAjPzmdNHToaXg`&quot;</span>
-<span class="sd">      You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot;</span>
+<span class="sd">      </span>
+<span class="sd">      You can get this via the &quot;Share&quot; button -&gt; &quot;get shareable link&quot; in Google sheets.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">gdrive_url</span> <span class="o">=</span> <span class="s2">&quot;https://docs.google.com/spreadsheet/ccc?key=&quot;</span> <span class="o">+</span> <span class="n">gdrive_key</span> <span class="o">+</span> <span class="s2">&quot;&amp;output=csv&quot;</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
-    <span class="n">events</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+    <span class="n">events</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">gdrive_url</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># header keeps changing</span>
+    <span class="n">events</span><span class="p">[</span><span class="s1">&#39;asked&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="k">return</span> <span class="n">events</span>
 </pre></div>
 
@@ -2109,13 +2416,21 @@ table {
 
     
   
+    <div class="desc"><p>Reset the game 
+<strong>Input</strong>:</p></div>
   <div class="source_cont">
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Conversation.restart_game', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Conversation.restart_game" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">restart_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">repeats_allowed</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reset the game </span>
+<span class="sd">    **Input**: </span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Reset number of rounds and possibly Q&#39;s that have already been asked</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">rounds_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_rounds</span>
     <span class="k">if</span> <span class="n">repeats_allowed</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remaining_events</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">events</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
             <span class="n">player</span><span class="o">.</span><span class="n">asked_events</span> <span class="o">=</span> <span class="p">[]</span>
 </pre></div>
@@ -2152,10 +2467,10 @@ table {
         <span class="k">return</span> <span class="n">year</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span>
 
     <span class="k">def</span> <span class="nf">already_asked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_i</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="n">asked_events</span>
+        <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; was born in &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; (b: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">birth_year</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
 </pre></div>
 
   </div>
@@ -2255,7 +2570,7 @@ table {
   <p class="source_link"><a href="javascript:void(0);" onclick="toggle('source-ClimateConversationsCore.Player.already_asked', this);">Show source &equiv;</a></p>
   <div id="source-ClimateConversationsCore.Player.already_asked" class="source">
     <div class="codehilite"><pre><span></span><span class="k">def</span> <span class="nf">already_asked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_i</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="n">asked_events</span>
+    <span class="k">return</span> <span class="n">event_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked_events</span>
 </pre></div>
 
   </div>

@@ -1,5 +1,5 @@
 #!/bin/bash
 
-PYTHONPATH=$PYTHONPATH:..
+PYTHONPATH=$PYTHONPATH:..:../resources
 pdoc --overwrite --html ../play_webapp.py
 pdoc --overwrite --html ../ClimateConversationsCore.py
