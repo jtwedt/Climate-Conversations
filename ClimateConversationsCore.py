@@ -237,7 +237,7 @@ class Player():
         return year - self.birth_year
 
     def already_asked(self, event_i):
-        return event_i in asked_events
+        return event_i in self.asked_events
 
     def __str__(self):
         return self.name + " was born in " + str(self.birth_year)
