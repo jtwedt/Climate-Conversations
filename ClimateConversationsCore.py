@@ -7,8 +7,6 @@ from utils import *
 import math
 
 class Conversation():
-    min_age_to_play = 0 # Overall minimum age to play the game
-    min_q_age = 0 # Don't ask Q's about events happening before the player is this old 
 
     def __init__(self, 
                  n_rounds=5,
