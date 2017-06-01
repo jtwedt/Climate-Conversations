@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PYTHONPATH=$PYTHONPATH:..
+pdoc --overwrite --html ../play_webapp.py
+pdoc --overwrite --html ../ClimateConversationsCore.py
