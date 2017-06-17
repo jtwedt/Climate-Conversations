@@ -48,8 +48,8 @@ class TestConversationWithoutSetup:
     '''
     p = [Player("First player", 1980),
          Player("Second player", 1998)]
-    c = Conversation(n_rounds = 3, players=p,
-                    events_file="tests/gdrive_frozen_20171706.xlsx")
+    c = Conversation(n_rounds = 3, players=p, 
+        events_file="tests/gdrive_frozen_20171706.xlsx")
 
     def test_fn_remove_nonexisting_player(self):
         assert not self.c.remove_player("Not a player", 1991)
@@ -69,4 +69,16 @@ class TestConversationWithoutSetup:
 
     def test_add_duplicate_player(self):
         assert False
+
+class TestConversationWithGDrive:
+    '''
+    Links to live google drive version of question set. This will break if the 
+    spreadsheet format is changed so that it is not compatible with the game.
+    '''
+    def setUp(self):
+        p = [Player("First player", 1980),
+                   Player("Second player", 1998)]
+        self.c = Conversation(n_rounds = 3, players=p,
+                    gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8")  
+
 
