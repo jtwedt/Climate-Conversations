@@ -73,9 +73,9 @@ class Conversation():
 
         **Output**: dataframe of events
         '''
-        xlsx = pd.ExcelFile(events_file)
-        events = xlsx.parse(xlsx.sheet_names[0])
-        events['asked'] = ""#
+        xlsx = pd.ExcelFile(events_file, header=2)
+        events = xlsx.parse(xlsx.sheet_names[0],header=1)
+        events['asked'] = ""
         return events
 
     
