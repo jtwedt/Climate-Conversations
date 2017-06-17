@@ -137,8 +137,12 @@ class Conversation():
         return self.current_e_idx is not None
 
     def add_player(self, player):
+        for p in self.players:
+            if p.name == player.name and p.birth_year == player.birth_year:
+                return False
         self.players.append(player)
         self.n_players += 1
+        return True
 
     def remove_player(self, player_name, player_birthyear):
         for player in self.players:
@@ -282,18 +286,23 @@ class Conversation():
         # If we have not reached the end of the round, move to the next player index
         if p_idx < self.n_players: 
             self.current_player_idx = p_idx
-            return self.get_current_player()
+            p = self.get_current_player()
         # If we have reached the end of the round, check if there are more rounds
         elif p_idx >= self.n_players:
             # If there are more rounds to play, start from 1st player & decrement the rounds left 
             if self.rounds_left:
                 self.rounds_left -= 1
                 self.current_player_idx = 0
-                return self.get_current_player()
+                p = self.get_current_player()
             # If there are no more rounds to play, we cannot increment the player
             else:
-                self.game_is_active = False
+                self.active_game = False
                 return None
+        if p:
+            return p
+        else:
+            self.active_game = False
+            return None
 
     def restart_game(self, repeats_allowed=True):
         """
