@@ -35,22 +35,29 @@ def save_game_setup():
 
     # TODO remove this hardcoding!!
     p1_name = form_data.get("name-p1")
-    p1_byear = int(form_data.get("birthyear-p1"))
+    try:
+        p1_byear = int(form_data.get("birthyear-p1"))
+    except:
+        return render_template("setup.html") # awful
     p1 = Player(p1_name, p1_byear)
     players.append(p1)
 
     p2_name = form_data.get("name-p2")
     p2_byear = form_data.get("birthyear-p2")
-    if p2_name:
-        p2_byear = int(p2_byear)
-        p2 = Player(p2_name, p2_byear)
-        players.append(p2)
+    if p2_name and p2_byear:
+        try:
+            p2_byear = int(p2_byear)
+            p2 = Player(p2_name, p2_byear)
+            players.append(p2)
+        except:
+            pass
+        
     else:
         pass
 
     p3_name = form_data.get("name-p3")
     p3_byear = form_data.get("birthyear-p3")
-    if p3_name:
+    if p3_name and p3_byear: 
         p3_byear = int(p3_byear)
         p3 = Player(p3_name, p3_byear)
         players.append(p3)
@@ -59,7 +66,7 @@ def save_game_setup():
 
     p4_name = form_data.get("name-p4")
     p4_byear = form_data.get("birthyear-p4")
-    if p4_name:
+    if p4_name and p4_byear:
         p4_byear = int(p4_byear)
         p4 = Player(p4_name, p4_byear)
         players.append(p4)
@@ -68,7 +75,7 @@ def save_game_setup():
 
     p5_name = form_data.get("name-p5")
     p5_byear = form_data.get("birthyear-p5")
-    if p5_name:
+    if p5_name and p5_byear:
         p5_byear = int(p5_byear)
         p5 = Player(p5_name, p5_byear)
         players.append(p5)
@@ -77,7 +84,7 @@ def save_game_setup():
 
     p6_name = form_data.get("name-p6")
     p6_byear = form_data.get("birthyear-p6")
-    if p6_name:
+    if p6_name and p6_byear:
         p6_byear = int(p6_byear)
         p6 = Player(p6_name, p6_byear)
         players.append(p6)
@@ -154,14 +161,14 @@ def play_game():
     if question and str(question).strip() != "":
         app.logger.info("Asking a question.")
         app.logger.info("Player %s, event %s, question %s" % (player.name, event, question))
-        return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
+        return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next", next_button_target="/play")
     else:
         app.logger.info("Failed to ask the question")
         incr = convo.increment_player()
         app.logger.info("Incremented player")
         return play_game()
 
-    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
+    return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next", next_button_target="/play")
 
     # Case: Successfully retrieved player, event, and question
     #       Display the question on the page!    

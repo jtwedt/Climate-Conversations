@@ -155,13 +155,7 @@ class Conversation():
         else:
             return self.players[self.current_player_idx]
 
-    # TODO: This should be optimized as there are more and more events
-    # TODO: As more event types are added, split this into multiple functions
-    #         Ideally, this would randomly choose the event type and event,
-    #         and then maybe something else would format it.
-
     def get_next_event(self, player):
-        # Figure out which player to ask
 
         # Randomly choose an event, but make sure:
         #   a) we haven't already discussed the event in this game
@@ -185,7 +179,7 @@ class Conversation():
         e_desc = e_desc.encode('utf-8').strip()
         e_age = player.get_age_in_year(int(self.events['start year'][e_idx]))
 
-        # Return question
+        # Return formatted string
         e = "In the year " + player.name + " turned " + str(e_age) + ", " + e_desc
         self.current_e_idx = e_idx
         self.current_event = e
@@ -220,7 +214,8 @@ class Conversation():
 
         Note that question formatting (i.e. with a year/age) is currently not supported.
         """
-        assert type(e_idx) is int
+        if type(e_idx) is not int:
+            return None
 
         e_year = self.events['start year'][e_idx]
 
@@ -255,7 +250,7 @@ class Conversation():
 
             # q = "<p>%s</p><br/><p>%s</p><br/><p>%s</p>" % (q1, q2, q3)
 
-        return q  
+        # return q  
         
     def check_for_extra_info(self, event_num):
         try:
