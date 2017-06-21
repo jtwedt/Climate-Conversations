@@ -20,9 +20,9 @@ See ```requirements.txt``` for other packages and versions.
 
 * Install prerequisites (see above).
 * Download this repository and navigate to the main folder.
-  * If desired, modify the data source used in $ClimateConversationsCore.py$.
+  * If desired, modify the data source used in ```ClimateConversationsCore.py```.
 * Webapp:
-  * If desired, modify the port and host address of the Flask app in $play_webapp.py$ (one of the last lines).
+  * If desired, modify the port and host address of the Flask app in ```play_webapp.py``` (one of the last lines).
   * Run ```python play_webapp.py```
   * Navigate to the host address.
   * (Note: this will eventually change to a much nicer config file setup!)
