@@ -8,43 +8,24 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-While developing this we've been trying out a few different platforms, and requirements to run them vary accordingly. Right now, we are working with the web version, but also include requirements for the command line and kivy versions.
-
-#### Webapp
-
 We use Flask v0.10.1. Other versions may work, but have not been tested.
 
 ```
 pip install Flask
 ```
 
-#### Command line (no longer being developed)
-
-No special reqiurements.
-
-#### Kivy (no longer being developed)
-
-We use kivy v1.9.1. Other versions may work, but have not been tested.
-
-```
-pip install kivy
-```
+See ```requirements.txt``` for other packages and versions.
 
 ### Installing
 
 * Install prerequisites (see above).
 * Download this repository and navigate to the main folder.
-  * If desired, modify the data source used in $ClimateConversationsCore.py$.
+  * If desired, modify the data source used in ```ClimateConversationsCore.py```.
 * Webapp:
-  * If desired, modify the port and host address of the Flask app in $play_webapp.py$ (one of the last lines).
+  * If desired, modify the port and host address of the Flask app in ```play_webapp.py``` (one of the last lines).
   * Run ```python play_webapp.py```
   * Navigate to the host address.
   * (Note: this will eventually change to a much nicer config file setup!)
-* Command line:
-  * Run ```python play_commandline.py```
-* Kivy: 
-  * Cross your fingers that nothing breaks.
-  * Run ```python play_ui.py```
 
 ## Deployment
 
@@ -62,6 +43,19 @@ Currently, I've been running this on a free tier AWS:
 5. Open a screen with logging (```screen -L```; there is probably a better/more secure way to do this.)
 6. Run $sudo python play_webapp.py$
 
+## Running tests
+
+This project uses ```nosetests``` and ```flask_testing``` modules.
+
+```
+pip install nosetests
+pip install Flask_Testing
+```
+
+Navigate to the root of the project directory and enter ```nosetests``` to run the tests.
+
+
+
 ## Built With
 
 * [Flask](http://flask.pocoo.org/) - The web framework used
@@ -72,4 +66,4 @@ See  the list of [contributors](https://github.com/jtwedt/Climate-Conversations/
 
 ## Acknowledgments
 
-* Thanks to all those who have contributed to our question database, testing, 
+* Thanks to all those who have contributed to our question database and testing. Thanks also to everyone who has patiently played our beta versions and given us feedback in formal and informal presentations of this project!
