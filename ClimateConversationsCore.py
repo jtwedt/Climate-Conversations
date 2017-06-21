@@ -7,8 +7,6 @@ import numpy as np
 from random import randint
 import datetime
 import time
-sys.path.insert(0, os.getcwd() + "/resources")
-from utils import *
 import math
 
 class Conversation():
@@ -165,7 +163,6 @@ class Conversation():
         #   a) we haven't already discussed the event in this game
         #   b) the date of the event makes sense given their age
         e_idx = randint(0, self.n_events-1)
-        n_checks = 1
         min_year = player.birth_year + self.min_q_age
         valid_events_by_birthyear = self.events[self.events['start year'] > min_year ].index
         valid_events = valid_events_by_birthyear.intersection(self.remaining_events)

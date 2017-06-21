@@ -45,6 +45,37 @@ class TestConversationWithSetup:
             pass
         assert not self.c.game_is_active()
 
+    # def test_restart_game(self):
+    #     assert False
+
+    # def test_increment_player(self):
+    #     assert False
+
+    # def test_check_for_image(self):
+    #     assert False
+
+    # def test_check_for_extra_info(self):
+    #     assert False
+
+    # def test_get_question_with_questions_left(self):
+    #     assert False
+
+    # def test_get_question_with_no_questions_left(self):
+    #     assert False
+
+    # def test_get_event_with_events_left(self):
+    #     assert False
+
+    # def test_get_event_player_too_young_for_all(self):
+    #     # Add young player (older than min age + )
+    #     assert False
+    
+    # def test_get_event_none_left(self):
+    #     assert False
+
+    # def test_(self):
+    #     assert False
+
 
 class TestConversationWithoutSetup:
     ''' Conversation does not get regenerated for every test.
@@ -69,6 +100,17 @@ class TestConversationWithoutSetup:
         new_p = self.c.players[-1]
         assert new_p.name is "Third player"
         assert new_p.birth_year is 1974
+
+    # def test_add_player_under_min_age(self):
+    #     assert False
+        
+    # def test_get_question_invalid_event_idx(self):
+    #     assert False
+
+    # def test_choose_general_question(self):
+    #     assert False
+
+
 
 
 
