@@ -34,9 +34,9 @@ def save_game_setup():
     players = []
 
     # TODO remove this hardcoding!!
-    p1_name = form_data.get("name-p1")
+    p1_name = form_data.get("name_p1")
     try:
-        p1_byear = int(form_data.get("birthyear-p1"))
+        p1_byear = int(form_data.get("birthyear_p1"))
     except:
         return render_template("setup.html") # awful
     p1 = Player(p1_name, p1_byear)
@@ -121,10 +121,19 @@ def save_game_setup():
 @app.route("/play")
 def play_game():
     global game_cache
+    # TODO this would break if the game has not been initiated, should fix
     app.logger.info("Loading convo from cache")
-    user_key = session['user_key']
-    convo = game_cache.get(user_key)
-    app.logger.info("Successfully retrieved conversation")
+    user_key = session.get('user_key')
+    if user_key is None:
+        app.logger.info("User key not set (no conversation to be retrieved). Redirecting to setup. This is probably not the best to do long-term but is ok for now.")
+        return render_template("setup.html")
+    else:
+        try:
+            convo = game_cache.get(user_key)
+            app.logger.info("Successfully retrieved conversation")
+        except:
+            app.logger.info("User key not in game cache (no conversation to be retrieved). Redirecting to setup. This is probably not the best to do long-term but is ok for now.")
+            return render_template("setup.html")
 
     # Case: The game is out of rounds and/or questions
     if not convo.game_is_active():
@@ -192,6 +201,10 @@ def end_for_player(user_key, player, keep_going=True, message=""):
     else:
         return end_game(user_key)
 
+@app.route("/feedback")
+def feedback():
+    return render_template("feedback.html", event='We appreciate any and all feedback for the game.', next_button_text="Set up a new game", next_button_target="/setup")
+
 def end_game(user_key):
     global game_cache
     game_cache.pop(user_key)
@@ -199,7 +212,7 @@ def end_game(user_key):
 
 
 if __name__ == "__main__":
-    handler = RotatingFileHandler('logs/webapp.log', maxBytes=10000, backupCount=1)
+    handler = RotatingFileHandler('logs/webapp.log', maxBytes=100000, backupCount=1)
     handler.setLevel(logging.INFO)
     formatter = logging.Formatter( "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s ")
     handler.setFormatter(formatter)

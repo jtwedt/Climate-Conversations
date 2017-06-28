@@ -40,11 +40,25 @@ class TestApp(TestCase):
             ), follow_redirects=True)
         return response
 
+    def post_empty_setup_form(self):
+        response = self.client.post("/setup/save", data=dict(
+            name_p1="",
+            birthyear_p1="",
+            num_rounds=0,
+            ), follow_redirects=True)
+        return response
+
     def test_assert_setup_save_redirect(self):
         response = self.post_setup_form()
         self.assert_template_used('play.html')
         assert response.status_code == 200
         assert len(cc.game_cache) == 1
+
+    def test_assert_setup_save_no_redirect(self):
+        response = self.post_empty_setup_form()
+        self.assert_template_used('setup.html')
+        assert response.status_code == 200
+        assert len(cc.game_cache) == 0
 
     def test_assert_play_game_uninitiated(self):
         response = self.client.get("/play")
@@ -65,7 +79,7 @@ class TestApp(TestCase):
         assert response.status_code == 200
 
 
-class MyTest(LiveServerTestCase):
+class LiveTest(LiveServerTestCase):
 
     def setUp(self):
         self.app = self.create_app()
@@ -78,6 +92,9 @@ class MyTest(LiveServerTestCase):
         app.config['LIVESERVER_TIMEOUT'] = 10
         app.secret_key = 'test key'
         return app
+
+    def tearDown(self):
+        cc.game_cache = {}
 
     def test_server_is_up_and_running(self):
         response = urllib2.urlopen(self.get_server_url())

@@ -158,12 +158,15 @@ class Conversation():
             return self.players[self.current_player_idx]
 
     def get_next_event(self, player):
+        if player is None:
+            return None, None
 
         # Randomly choose an event, but make sure:
         #   a) we haven't already discussed the event in this game
         #   b) the date of the event makes sense given their age
         e_idx = randint(0, self.n_events-1)
         min_year = player.birth_year + self.min_q_age
+
         valid_events_by_birthyear = self.events[self.events['start year'] > min_year ].index
         valid_events = valid_events_by_birthyear.intersection(self.remaining_events)
 
@@ -215,7 +218,7 @@ class Conversation():
 
         Note that question formatting (i.e. with a year/age) is currently not supported.
         """
-        if type(e_idx) is not int:
+        if type(e_idx) is not int or e_idx < 0 or e_idx > self.n_events:
             return None
 
         e_year = self.events['start year'][e_idx]
@@ -224,6 +227,7 @@ class Conversation():
         # aka get a random question
         if len(self.q_colnames) == 1:
             q = self.choose_general_question(e_year)
+            return q
 
         # Otherwise, if we have more than 1 question column, assume it's the 
         # database with 3 questions.
@@ -236,8 +240,8 @@ class Conversation():
                     self.events.loc[e_idx,'asked'] = self.events.loc[e_idx,'asked'] + colname
                     return q
 
-        self.current_e_idx = None
-        return None
+            self.current_e_idx = None
+            return None
 
             # q1 = self.events["example question 1"][e_idx]
             # q2 = self.events["example question 2"][e_idx]
@@ -253,22 +257,25 @@ class Conversation():
 
         # return q  
         
-    def check_for_extra_info(self, event_num):
+    def check_for_extra_info(self, e_idx):
         try:
-            q_info = self.events['additional description'][event_num]
+            q_info = self.events['additional description'][e_idx]
+            if len(q_info) > 0:
+                return q_info
+            else:
+                return None
         except: 
             return None
-        if q_info == "": 
-            return None
-        else: 
-            return q_info
 
-    def check_for_image(self, event_num):
-        img_file = self.events['image'][event_num]
 
-        if os.path.isfile(img_file):
-            return img_file
-        else:
+    def check_for_image(self, e_idx):
+        try:
+            img_file = self.events['image filename'][e_idx]
+            if os.path.isfile(img_file):
+                return img_file
+            else:
+                return None
+        except:
             return None
        
     def increment_player(self):
@@ -294,11 +301,13 @@ class Conversation():
             # If there are no more rounds to play, we cannot increment the player
             else:
                 self.active_game = False
+                self.current_player_idx = None
                 return None
         if p:
             return p
         else:
             self.active_game = False
+            self.current_player_idx = None
             return None
 
     def restart_game(self, repeats_allowed=True):
@@ -308,6 +317,7 @@ class Conversation():
         """
         # Reset number of rounds and possibly Q's that have already been asked
         self.rounds_left = self.n_rounds
+        self.active_game = True
         if repeats_allowed:
             self.asked_events = []
             self.remaining_events = list(self.events.index)

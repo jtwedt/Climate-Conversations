@@ -7,9 +7,9 @@ class TestConversationWithSetup:
     '''
     def setUp(self):
         p = [Player("First player", 1980),
-                   Player("Second player", 1998)]
+            Player("Second player", 1998)]
         self.c = Conversation(n_rounds = 3, players=p,
-                         events_file="tests/gdrive_frozen_20171706.xlsx") 
+                         events_file="tests/gdrive_frozen_20172806.xlsx") 
 
     def tearDown(self):
         pass
@@ -45,33 +45,86 @@ class TestConversationWithSetup:
             pass
         assert not self.c.game_is_active()
 
-    # def test_restart_game(self):
-    #     assert False
+    def test_restart_game(self):
+        # TODO make this play some rounds and then make sure the q's are still there
+        while self.c.game_is_active():
+            self.c.increment_player()
+            p = self.c.get_current_player()
+            self.c.get_next_event(p)
+        assert not self.c.game_is_active()
+        self.c.restart_game(repeats_allowed=False)
+        assert self.c.game_is_active()
+        assert self.c.rounds_left == 3
+        assert len(self.c.asked_events) > 0
 
-    # def test_increment_player(self):
-    #     assert False
 
-    # def test_check_for_image(self):
-    #     assert False
+        self.c.restart_game()
+        assert self.c.game_is_active()
+        assert self.c.rounds_left == 3
+        assert len(self.c.asked_events) == 0
 
-    # def test_check_for_extra_info(self):
-    #     assert False
+    def test_initial_current_player(self):
+        assert self.c.current_player_idx == 0
 
-    # def test_get_question_with_questions_left(self):
-    #     assert False
+    def test_increment_player_once(self):
+        assert self.c.current_player_idx == 0
+        self.c.increment_player()
+        assert self.c.current_player_idx == 1
 
-    # def test_get_question_with_no_questions_left(self):
-    #     assert False
+    def test_increment_player(self):
+        # 3 rounds, 2 players
+        for round_no in range(self.c.n_rounds):
+            for p_no in range(self.c.n_players):
+                assert self.c.current_player_idx == p_no
+                self.c.increment_player()
+        assert self.c.current_player_idx is None
 
-    # def test_get_event_with_events_left(self):
-    #     assert False
+    def test_get_question_with_questions_left(self):
+        p = self.c.get_current_player()
+        e_idx, e = self.c.get_next_event(p)
+        q = self.c.get_question(e_idx)
+        assert q is not None
+
+    def test_get_three_questions_individually(self):
+        p = self.c.get_current_player()
+        e_idx, e = self.c.get_next_event(p)
+        for _ in range(3):
+            q = self.c.get_question(e_idx)
+            assert q is not None
+
+        q = self.c.get_question(e_idx)
+        assert q is None
+
+    def test_get_question_with_no_questions_left(self):
+    # Run through all players so we have no questions left
+        for round_no in range(self.c.n_rounds):
+            for p_no in range(self.c.n_players):
+                self.c.increment_player()
+
+        p = self.c.get_current_player()
+        e_idx, e = self.c.get_next_event(p)
+        q = self.c.get_question(e_idx)
+        assert q is None
+
+    def test_get_event_with_events_left(self):
+        p = self.c.get_current_player()
+        e_idx, e = self.c.get_next_event(p)
+        assert e_idx is not None
+        assert e is not None
 
     # def test_get_event_player_too_young_for_all(self):
     #     # Add young player (older than min age + )
     #     assert False
     
-    # def test_get_event_none_left(self):
-    #     assert False
+    def test_get_event_none_left(self):
+        for round_no in range(self.c.n_rounds):
+            for p_no in range(self.c.n_players):
+                self.c.increment_player()
+
+        p = self.c.get_current_player()
+        e_idx, e = self.c.get_next_event(p)
+        assert e_idx is None
+        assert e is None
 
     # def test_(self):
     #     assert False
@@ -101,17 +154,29 @@ class TestConversationWithoutSetup:
         assert new_p.name is "Third player"
         assert new_p.birth_year is 1974
 
+    def test_check_for_image(self):
+        assert self.c.check_for_image(1) is not None
+        assert self.c.check_for_image(2) is None
+
+    def test_check_for_extra_info(self):
+        assert self.c.check_for_extra_info(6) is not None
+        assert self.c.check_for_extra_info(5) is None
+
     # def test_add_player_under_min_age(self):
     #     assert False
-        
-    # def test_get_question_invalid_event_idx(self):
-    #     assert False
 
-    # def test_choose_general_question(self):
-    #     assert False
+    def test_get_question_invalid_event_idx(self):
+        assert self.c.get_question(-1) is None
+        assert self.c.get_question(999) is None
 
+    def test_choose_general_question(self):
+        assert self.c.choose_general_question(e_year=1950) is not None
+        assert self.c.choose_general_question(e_year=2000) is not None
 
-
+    def test_get_event_null_player(self):
+        e_idx, e = self.c.get_next_event(None)
+        assert e_idx is None
+        assert e is None
 
 
 class TestConversationWithGDrive:
