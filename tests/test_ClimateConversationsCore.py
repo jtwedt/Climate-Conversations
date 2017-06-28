@@ -1,6 +1,20 @@
 from datetime import datetime
 from ClimateConversationsCore import Conversation, Player
 
+'''
+Missing tests according to coverage calculation:
+
+* No events file specified
+* Data has no question columns
+* No valid events in Data
+* General question with %d in it 
+* General question not specifying year
+* Dataset w/ just 1 question col
+* Increment player w/ no active game
+* Get player's current age
+* Already asked player q's
+'''
+
 class TestConversationWithSetup:
     '''
     Test Conversation class constructor.

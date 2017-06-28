@@ -3,6 +3,17 @@ from flask import Flask
 from flask_testing import TestCase, LiveServerTestCase
 import urllib2
 
+'''
+Missing tests according to coverage calculation:
+
+* play_game with no active game 
+* testing more players in form
+* game is active but no player returned
+* no more events available for player
+* end_for_player
+* end_game (check cache & template)
+'''
+
 class TestApp(TestCase):
 
     render_templates = False
