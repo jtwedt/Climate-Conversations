@@ -41,7 +41,7 @@ Currently, I've been running this on a free tier AWS:
 ```    Port: 80``` (or a port of your choosing, but make sure it's open on your AWS instance)
 
 5. Open a screen with logging (```screen -L```; there is probably a better/more secure way to do this.)
-6. Run $sudo python play_webapp.py$
+6. Run ```sudo python play_webapp.py```
 
 ## Running tests
 
