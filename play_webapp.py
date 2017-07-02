@@ -1,27 +1,41 @@
 # encoding=utf8  
-import sys  
+import os, sys, logging
 reload(sys)  
 sys.setdefaultencoding('utf8')
 from flask import Flask, session, request, render_template, url_for, redirect
-import os
-import logging
+from wtforms import Form, FieldList, FormField, StringField, IntegerField, validators
 from logging.handlers import RotatingFileHandler
 sys.path.insert(0, os.getcwd())
-sys.path.insert(0, os.getcwd() + "/resources")
-sys.path.insert(0, os.getcwd() + "/ui") 
 from ClimateConversationsCore import *
 
 app = Flask(__name__)
 game_cache = {}
 
+class PlayerEntryForm(Form):
+    pname = StringField() # StringField vs TextField?
 
+class SetupForm(Form):
+    """A form for one or more addresses"""
+    player_records = FieldList(FormField(PlayerEntryForm), min_entries=1)
+
+#TODO 
+# Format macro like orig. template
+# Add buttun to save form info & add new field
+# Add function to trigger when the abv button is pushed
+# Break fns into separate files
+# Add more fields byear
+# Get player data from dict list instead of from named attrs
 @app.route("/")
 def main():
     return render_template('index.html')
 
 @app.route("/setup")
 def game_setup():
-    return render_template("setup.html")
+    test_records = [{"pname": "First name"},
+                    {"pname": "Second name"}]
+    form = SetupForm(player_records=test_records)
+    return render_template("setup.html", form=form)
+    # return render_template("setup.html")
 
 @app.route("/setup/save", methods=['POST'])
 def save_game_setup():

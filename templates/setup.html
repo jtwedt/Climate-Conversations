@@ -11,13 +11,20 @@
   </head>
  
   <body>
+    {% from "_form_helpers.html" import render_field %}
 
     <h3>Get ready to travel through time...</h3>
     <form class="form-addplayers" method="post" action="/setup/save">
     <div class="setup-form">
 
       <div class="player-entry">
-        <h3 class="invert_colors">Player 1</h3>
+
+
+
+        {% for player_entry_form in form.player_records %}
+            {{ render_field(player_entry_form.pname) }}
+        {% endfor %}
+        <!-- <h3 class="invert_colors">Player 1</h3>
 
         <div class="container">
           <label for="inputName" class="sr-only">Name</label>
@@ -98,7 +105,7 @@
           <label for="inputBirthyear" class="sr-only">Year you were born</label>
           <span> <input id="birthyear-p6" name="birthyear-p6" class="freeform-oneline"></span>
         </div>
-      </div>
+      </div> -->
 
 
 
