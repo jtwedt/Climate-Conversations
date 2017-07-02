@@ -12,9 +12,7 @@ sys.path.insert(0, os.getcwd() + "/ui")
 from ClimateConversationsCore import *
 
 app = Flask(__name__)
-
 game_cache = {}
-
 
 
 @app.route("/")
@@ -121,7 +119,7 @@ def save_game_setup():
 @app.route("/play")
 def play_game():
     global game_cache
-    # TODO this would break if the game has not been initiated, should fix
+    
     app.logger.info("Loading convo from cache")
     user_key = session.get('user_key')
     if user_key is None:
@@ -178,10 +176,6 @@ def play_game():
         return play_game()
 
     return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next", next_button_target="/play")
-
-    # Case: Successfully retrieved player, event, and question
-    #       Display the question on the page!    
-    # return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next person", next_button_target="/play")
 
 def end_for_player(user_key, player, keep_going=True, message=""):
     """
