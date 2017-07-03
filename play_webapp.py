@@ -12,7 +12,8 @@ app = Flask(__name__)
 game_cache = {}
 
 class PlayerEntryForm(Form):
-    pname = StringField() # StringField vs TextField?
+    pname = StringField('Name') # StringField vs TextField?
+    byear = IntegerField('Birth year')
 
 class SetupForm(Form):
     """A form for one or more addresses"""
@@ -31,8 +32,8 @@ def main():
 
 @app.route("/setup")
 def game_setup():
-    test_records = [{"pname": "First name"},
-                    {"pname": "Second name"}]
+    test_records = [{"pname": "First name", "byear": 1992},
+                    {"pname": "Second name", "byear": 1980}]
     form = SetupForm(player_records=test_records)
     return render_template("setup.html", form=form)
     # return render_template("setup.html")

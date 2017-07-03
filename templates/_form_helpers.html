@@ -1,12 +1,20 @@
-{% macro render_field(field) %}
-  <dt>{{ field.label }}
-  <dd>{{ field(**kwargs)|safe }}
-  {% if field.errors %}
-    <ul class=errors>
-    {% for error in field.errors %}
-      <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-  </dd>
+{% macro render_header(pnum) %}
+<h3 class="invert_colors"> Player {{pnum}}</h3>
 {% endmacro %}
+
+{% macro render_field(field) %}
+<div class="container">
+  {{ field.label }}
+  <span> {{ field(**kwargs)|safe }} 
+    {% if field.errors %}
+      <ul class=errors>
+      {% for error in field.errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </span>
+</div>
+{% endmacro %}
+
+

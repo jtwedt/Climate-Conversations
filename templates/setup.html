@@ -11,18 +11,21 @@
   </head>
  
   <body>
-    {% from "_form_helpers.html" import render_field %}
+    {% from "_form_helpers.html" import render_field, render_header %}
 
     <h3>Get ready to travel through time...</h3>
     <form class="form-addplayers" method="post" action="/setup/save">
     <div class="setup-form">
 
-      <div class="player-entry">
-
-
+      <div class="player-entry freeform-oneline invert_colors">
+<!-- This is how the first record shows up in the result -->
+<!-- <input id="player_records-0-pname" name="player_records-0-pname" type="text" value="First name"> -->
 
         {% for player_entry_form in form.player_records %}
-            {{ render_field(player_entry_form.pname) }}
+            {{ render_header(loop.index0+1) }}
+            {{ render_field(player_entry_form.pname, class="freeform-oneline") }}
+            {{ render_field(player_entry_form.byear, class="freeform-oneline") }}
+
         {% endfor %}
         <!-- <h3 class="invert_colors">Player 1</h3>
 
@@ -116,7 +119,7 @@
       <!-- <label for="inputNRounds" class="sr-only">Num Rounds</label> -->
       <select id="nRounds" name="num_rounds" class="num-rounds">
         <option value="1">1</option>
-        <option value="2">2</option>
+        <option value="2" selected="selected">2</option>
         <option value="3">3</option>
         <option value="4">4</option>
         <option value="5">5</option>
