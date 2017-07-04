@@ -16,102 +16,17 @@
     <h3>Get ready to travel through time...</h3>
     <form class="form-addplayers" method="post" action="/setup/save">
     <div class="setup-form">
-
       <div class="player-entry freeform-oneline invert_colors">
-<!-- This is how the first record shows up in the result -->
-<!-- <input id="player_records-0-pname" name="player_records-0-pname" type="text" value="First name"> -->
-
         {% for player_entry_form in form.player_records %}
             {{ render_header(loop.index0+1) }}
             {{ render_field(player_entry_form.pname, class="freeform-oneline") }}
             {{ render_field(player_entry_form.byear, class="freeform-oneline") }}
-
         {% endfor %}
-        <!-- <h3 class="invert_colors">Player 1</h3>
-
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name_p1" id="name_p1" class="freeform-oneline"
-                 placeholder="" required autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear_p1" name="birthyear_p1" class="freeform-oneline"></span>
-        </div>
       </div>
 
-      <div class="player-entry">
-        <h3 class="invert_colors">Player 2</h3>
+    { form_button(url_for('main.add_email'),
 
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p2" id="name-p2" class="freeform-oneline"
-                 placeholder="" autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p2" name="birthyear-p2" class="freeform-oneline"></span>
-        </div>
-      </div>
-
-      <div class="player-entry">
-        <h3 class="invert_colors">Player 3</h3>
-
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p3" id="name-p3" class="freeform-oneline"
-                 placeholder="" autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p3" name="birthyear-p3" class="freeform-oneline"></span>
-        </div>
-      </div>
-
-      <div class="player-entry">
-        <h3 class="invert_colors">Player 4</h3>
-
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p4" id="name-p4" class="freeform-oneline"
-                 placeholder="" autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p4" name="birthyear-p4" class="freeform-oneline"></span>
-        </div>
-      </div>
-
-      <div class="player-entry">
-        <h3 class="invert_colors">Player 5</h3>
-
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p5" id="name-p5" class="freeform-oneline"
-                 placeholder="" autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p5" name="birthyear-p5" class="freeform-oneline"></span>
-        </div>
-      </div>
-
-      <div class="player-entry">
-        <h3 class="invert_colors">Player 6</h3>
-
-        <div class="container">
-          <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p6" id="name-p6" class="freeform-oneline"
-                 placeholder="" autofocus> </span>
-        </div>
-        <div class="container">
-          <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p6" name="birthyear-p6" class="freeform-oneline"></span>
-        </div>
-      </div> -->
-
-
-
+                    icon ('plus')) }}
     </div> <!-- End setup-form -->
 
     <div class="round-input">

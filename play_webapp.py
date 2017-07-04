@@ -32,8 +32,9 @@ def main():
 
 @app.route("/setup")
 def game_setup():
-    test_records = [{"pname": "First name", "byear": 1992},
-                    {"pname": "Second name", "byear": 1980}]
+    test_records = [{"pname": "", "byear": ""},
+                    {"pname": "", "byear": ""}]
+    # test_records = []
     form = SetupForm(player_records=test_records)
     return render_template("setup.html", form=form)
     # return render_template("setup.html")
@@ -43,90 +44,52 @@ def save_game_setup():
     global game_cache
     form_data = request.form
     n_rounds = int(form_data.get("num_rounds"))
-    app.logger.info("Saved n_rounds: %d" % n_rounds)
+    app.logger.debug("Saved n_rounds: %d" % n_rounds)
+
+    app.logger.debug(form_data)
+
+    # Retrive raw form data
+    player_raw_data = []
+    for k,v in form_data.iteritems():
+        app.logger.debug("key: " + k + " value: " +  v)
+        if "pname" in k or "byear" in k:
+            p_no = int(k.split("-")[1])
+            short_k = k.split("-")[2]
+            app.logger.debug("Extracted player no " + str(p_no))
+        else:
+            continue
+        if len(player_raw_data) <= p_no:
+            add_slots = p_no - len(player_raw_data) + 1
+            player_raw_data = player_raw_data + [{} for _ in range(add_slots)]
+        if "byear" in k:
+            v = int(v) # TODO proper input validation
+        player_raw_data[p_no][short_k] = v
+
+    app.logger.debug(player_raw_data)
+
+    # Create player objects
     players = []
-
-    # TODO remove this hardcoding!!
-    p1_name = form_data.get("name_p1")
-    try:
-        p1_byear = int(form_data.get("birthyear_p1"))
-    except:
-        return render_template("setup.html") # awful
-    p1 = Player(p1_name, p1_byear)
-    players.append(p1)
-
-    p2_name = form_data.get("name-p2")
-    p2_byear = form_data.get("birthyear-p2")
-    if p2_name and p2_byear:
-        try:
-            p2_byear = int(p2_byear)
-            p2 = Player(p2_name, p2_byear)
-            players.append(p2)
-        except:
-            pass
-        
-    else:
-        pass
-
-    p3_name = form_data.get("name-p3")
-    p3_byear = form_data.get("birthyear-p3")
-    if p3_name and p3_byear: 
-        p3_byear = int(p3_byear)
-        p3 = Player(p3_name, p3_byear)
-        players.append(p3)
-    else:
-        pass
-
-    p4_name = form_data.get("name-p4")
-    p4_byear = form_data.get("birthyear-p4")
-    if p4_name and p4_byear:
-        p4_byear = int(p4_byear)
-        p4 = Player(p4_name, p4_byear)
-        players.append(p4)
-    else:
-        pass
-
-    p5_name = form_data.get("name-p5")
-    p5_byear = form_data.get("birthyear-p5")
-    if p5_name and p5_byear:
-        p5_byear = int(p5_byear)
-        p5 = Player(p5_name, p5_byear)
-        players.append(p5)
-    else:
-        pass
-
-    p6_name = form_data.get("name-p6")
-    p6_byear = form_data.get("birthyear-p6")
-    if p6_name and p6_byear:
-        p6_byear = int(p6_byear)
-        p6 = Player(p6_name, p6_byear)
-        players.append(p6)
-    else:
-        pass
-
-    # The code below uses the same session key if they've played before
-    # HOWEVER, this is not what we want. We should start a new session if
-    # the user starts a new round. In the future if we did this more 
-    # intelligently, it would be nice to save the questions they got previously
-    # so they didn't get the same questions in a new round. Removing for now.
-    # try:
-    #     user_key = session['user_key']
-    # except:
-    #     user_key = os.urandom(24)
-    #     session['user_key'] = user_key  
+    for p_data in player_raw_data:
+        players.append(Player(p_data.get("pname"), p_data.get("byear")))
 
     player_string = "\n".join([str(p) for p in players])
     app.logger.info("Added players: \n%s" % player_string)
 
+    # Generate a key to store the session in the game cache
     user_key = os.urandom(24)
     app.logger.info("Assigned session key: %s" % user_key)
-    session['user_key'] = user_key  # players
+    session['user_key'] = user_key 
 
+    # Create the conversation
+    app.logger.debug("Initializing conversation object.")
     convo = Conversation(n_rounds = n_rounds, players=players,
-                         gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") 
+                        events_file="tests/gdrive_frozen_20172806.xlsx")
+                         # gdrive_key="1fiI18O4inR-Pm7XFnFitCrbfoGjXpZX_D_On348y4j8") 
                          #gdrive_key="183SABhCyJmVheVwu_1rWzY7jOjvtyfbmG58ow321a3g") # Original set of 70ish questions
                          #events_file="data/firstHistoricClimateEvents.xlsx") # Locally stored copy
+    app.logger.debug("Storing the conversation in the game cache using the generated key.")
     game_cache[user_key] = convo
+    app.logger.debug("Done; returning the play route redirect.")
 
     return redirect("/play", code=302)
 
@@ -138,15 +101,15 @@ def play_game():
     app.logger.info("Loading convo from cache")
     user_key = session.get('user_key')
     if user_key is None:
-        app.logger.info("User key not set (no conversation to be retrieved). Redirecting to setup. This is probably not the best to do long-term but is ok for now.")
-        return render_template("setup.html")
+        app.logger.debug("User key not set (no conversation to be retrieved). Redirecting to setup. This is probably not the best to do long-term but is ok for now.")
+        return render_template("setup.html", form=SetupForm(player_records=["pname:" "ln 111"]))
     else:
         try:
             convo = game_cache.get(user_key)
-            app.logger.info("Successfully retrieved conversation")
+            app.logger.debug("Successfully retrieved conversation")
         except:
             app.logger.info("User key not in game cache (no conversation to be retrieved). Redirecting to setup. This is probably not the best to do long-term but is ok for now.")
-            return render_template("setup.html")
+            return render_template("setup.html", form=SetupForm(player_records=["pname:" "ln 118"]))
 
     # Case: The game is out of rounds and/or questions
     if not convo.game_is_active():
@@ -154,12 +117,12 @@ def play_game():
         return end_game(user_key) 
 
     player = convo.get_current_player()
-    app.logger.info("Asked the game for a player, got: %s" % str(player))
+    app.logger.debug("Asked the game for a player, got: %s" % str(player))
 
     # Case: Game returned 'None' for the player.
     #       This usually means that we ran out of rounds, so we end.
     if player is None:
-        app.logger.info("No player returned, although the game was still active. Ending the game.")
+        app.logger.debug("No player returned, although the game was still active. Ending the game.")
         return end_game(user_key)
 
     if convo.event_is_active():
@@ -181,13 +144,13 @@ def play_game():
     # Case: Game returned 'None' for the question.
     #       We can increment the player and keep going.
     if question and str(question).strip() != "":
-        app.logger.info("Asking a question.")
+        app.logger.debug("Asking a question.")
         app.logger.info("Player %s, event %s, question %s" % (player.name, event, question))
         return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next", next_button_target="/play")
     else:
-        app.logger.info("Failed to ask the question")
+        app.logger.debug("Failed to ask the question")
         incr = convo.increment_player()
-        app.logger.info("Incremented player")
+        app.logger.debug("Incremented player")
         return play_game()
 
     return render_template("play.html", player_name=player.name, event=event, question=question, next_button_text="Next", next_button_target="/play")
@@ -203,9 +166,9 @@ def end_for_player(user_key, player, keep_going=True, message=""):
     """
     if keep_going:
         convo = game_cache.get(user_key)
-        app.logger.info("Successfully retrieved conversation")
+        app.logger.debug("Successfully retrieved conversation")
         convo.remove_player(player.name, player.birth_year)
-        app.logger.info("Removed player from conversation")
+        app.logger.debug("Removed player from conversation")
         return render_template("play.html", player_name="", question='Thanks for playing, %s! %s' % (player.name, message), event="", next_button_text="Keep going with other players", next_button_target="/play")
     else:
         return end_game(user_key)
@@ -226,6 +189,6 @@ if __name__ == "__main__":
     formatter = logging.Formatter( "%(asctime)s | %(pathname)s:%(lineno)d | %(funcName)s | %(levelname)s | %(message)s ")
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
-    app.logger.setLevel(logging.INFO)
+    app.logger.setLevel(logging.DEBUG)
     app.secret_key = os.urandom(32)
     app.run(debug=True)
