@@ -4,3 +4,4 @@ blinker==1.4
 gunicorn==19.7.1
 pandas==0.19.2
 numpy==1.12.0
+flake8
