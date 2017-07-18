@@ -27,6 +27,10 @@ See ```requirements.txt``` for other packages and versions.
   * Navigate to the host address.
   * (Note: this will eventually change to a much nicer config file setup!)
 
+## Local Development
+
+You can test the app locally by running it with ```gunicorn -b :8080 play_webapp:app```. Then point your browser to http://localhost:8080/.
+
 ## Deployment
 
 Currently, I've been running this on a free tier AWS:
