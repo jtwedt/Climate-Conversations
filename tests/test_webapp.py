@@ -1,18 +1,18 @@
 import play_webapp as cc
-from flask import Flask
 from flask_testing import TestCase, LiveServerTestCase
 import urllib2
 
 '''
 Missing tests according to coverage calculation:
 
-* play_game with no active game 
+* play_game with no active game
 * testing more players in form
 * game is active but no player returned
 * no more events available for player
 * end_for_player
 * end_game (check cache & template)
 '''
+
 
 class TestApp(TestCase):
 
@@ -76,9 +76,9 @@ class TestApp(TestCase):
         self.assert_template_used('setup.html')
         assert response.status_code == 200
         assert len(cc.game_cache) == 0
-        
+
     def test_assert_play_game_initial_response(self):
-        _ = self.post_setup_form()
+        self.post_setup_form()
         response = self.client.get("/play")
         self.assert_template_used('play.html')
         assert response.status_code == 200
@@ -99,7 +99,7 @@ class LiveTest(LiveServerTestCase):
     def create_app(self):
         app = cc.app
         app.config['TESTING'] = True
-        app.config['LIVESERVER_PORT'] = 0 # Set port to 0 to let flask choose
+        app.config['LIVESERVER_PORT'] = 0  # Set port to 0 to let flask choose
         app.config['LIVESERVER_TIMEOUT'] = 10
         app.secret_key = 'test key'
         return app
@@ -110,4 +110,3 @@ class LiveTest(LiveServerTestCase):
     def test_server_is_up_and_running(self):
         response = urllib2.urlopen(self.get_server_url())
         self.assertEqual(response.code, 200)
-
