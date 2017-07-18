@@ -12,6 +12,11 @@ sys.path.insert(0, os.getcwd() + "/ui")
 from ClimateConversationsCore import *
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
+
+# This is just random data no hidden meaning
+app.secret_key = 'vqo0sFOyRMyEwXuTjD7REsZk6ytI'
+
 game_cache = {}
 
 
