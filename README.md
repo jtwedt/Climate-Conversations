@@ -43,6 +43,25 @@ Currently, I've been running this on a free tier AWS:
 5. Open a screen with logging (```screen -L```; there is probably a better/more secure way to do this.)
 6. Run ```sudo python play_webapp.py```
 
+## Deployment on Google App Engine
+
+Prerequisites: access to the Google App Engine project, the current
+ClimateConversations application checked out in your current working directory.
+
+### Setup
+
+1. Install Google Cloud SDK https://cloud.google.com/sdk/downloads
+2. Authenticate your Google Cloud Client ```gcloud auth login```
+3. Set the project ID ```gcloud config set project climateconversations-174102```
+
+### Deployment
+
+1. ```gcloud app deploy app.yaml```
+
+### Troubleshooting
+
+You can access the production application logs with ```gcloud app logs tail -s default```
+
 ## Running tests
 
 This project uses ```nosetests``` and ```flask_testing``` modules.

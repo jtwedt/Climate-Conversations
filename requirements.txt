@@ -1,3 +1,6 @@
 flask==0.10.1
 Flask-Testing==0.6.2
 blinker==1.4
+gunicorn==19.7.1
+pandas==0.19.2
+numpy==1.12.0
