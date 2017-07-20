@@ -101,6 +101,7 @@ class LiveTest(LiveServerTestCase):
         app.config['TESTING'] = True
         app.config['LIVESERVER_PORT'] = 0  # Set port to 0 to let flask choose
         app.config['LIVESERVER_TIMEOUT'] = 10
+        app.config['PRESERVE_CONTEXT_ON_EXCEPTION'] = False
         app.secret_key = 'test key'
         return app
 
