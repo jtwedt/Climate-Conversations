@@ -103,7 +103,7 @@ class Conversation():
           You can get this via the "Share" button -> "get shareable link"
             in Google sheets.
         '''
-        gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=%s" + \
+        gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + \
                      gdrive_key + "&output=csv"
 
         # header keeps changing
