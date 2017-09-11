@@ -1,5 +1,5 @@
 from datetime import datetime
-from ClimateConversationsCore import Conversation, Player
+from ClimateConversationsCore import Conversation, EventStore, Player
 
 '''
 Missing tests according to coverage calculation:
@@ -21,10 +21,10 @@ class TestConversationWithSetup:
     Test Conversation class constructor.
     '''
     def setUp(self):
+        es = EventStore.load_from_excel("tests/gdrive_frozen_20172806.xlsx")
         p = [Player("First player", 1980),
              Player("Second player", 1998)]
-        self.c = Conversation(n_rounds=3, players=p,
-                              events_file="tests/gdrive_frozen_20172806.xlsx")
+        self.c = Conversation(es, p, 3)
 
     def tearDown(self):
         pass
@@ -148,10 +148,10 @@ class TestConversationWithSetup:
 class TestConversationWithoutSetup:
     ''' Conversation does not get regenerated for every test.
     '''
+    es = EventStore.load_from_excel("tests/gdrive_frozen_20172806.xlsx")
     p = [Player("First player", 1980),
          Player("Second player", 1998)]
-    c = Conversation(n_rounds=3, players=p,
-                     events_file="tests/gdrive_frozen_20171706.xlsx")
+    c = Conversation(es, p, 3)
 
     def test_remove_nonexisting_player(self):
         assert not self.c.remove_player("Not a player", 1991)
@@ -202,10 +202,10 @@ class TestConversationWithGDrive:
     Initially loads the local file & then tests the remote file for isolation.
     '''
     def setUp(self):
+        es = EventStore.load_from_excel("tests/gdrive_frozen_20172806.xlsx")
         p = [Player("First player", 1980),
              Player("Second player", 1998)]
-        self.c = Conversation(n_rounds=3, players=p,
-                              events_file="tests/gdrive_frozen_20171706.xlsx")
+        self.c = Conversation(es, p, 3)
 
     def test_load_gdrive(self):
         self.c.load_events_from_gdrive(

@@ -44,15 +44,15 @@ class TestApp(TestCase):
         assert len(cc.game_cache) == 0
 
     def post_setup_form(self):
-        response = self.client.post("/setup/save", data=dict(
-            name_p1="Test user",
-            birthyear_p1=1980,
+        response = self.client.post("/setup", data=dict(
+            player_name="Test user",
+            player_birthyear=1980,
             num_rounds=1,
             ), follow_redirects=True)
         return response
 
     def post_empty_setup_form(self):
-        response = self.client.post("/setup/save", data=dict(
+        response = self.client.post("/setup", data=dict(
             name_p1="",
             birthyear_p1="",
             num_rounds=0,
