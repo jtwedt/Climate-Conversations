@@ -221,7 +221,7 @@ class Conversation(object):
                     if e_idx not in used_events:
                         p_questions = [(p_idx, e_idx, q_idx) for q_idx, q
                                        in enumerate(e.questions)]
-                        player_questions[p_idx].extend(p_questions)
+                        player_questions[p_idx].append(p_questions)
                         used_events.add(e_idx)
                     else:
                         retries += 1
@@ -231,7 +231,7 @@ class Conversation(object):
         for r_idx in range(rounds):
             for p_idx, p in enumerate(players):
                 q = player_questions[p_idx].pop(0)
-                questions.append(q)
+                questions.extend(q)
 
         return cls(event_store, players, questions)
 
