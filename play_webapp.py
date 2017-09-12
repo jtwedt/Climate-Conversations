@@ -47,9 +47,10 @@ def save_game_setup():
     # a form with an arbirary number of player.
     names_and_birthyears = zip(form_data.getlist('player_name'),
                                form_data.getlist('player_birthyear'))
+    # TODO(dlundquist): handle bad player data
     players = [Player(n, y) for n, y in names_and_birthyears]
 
-    app.logger.info("Added players: %s" % players)
+    app.logger.info("Added players: %s" % [str(p) for p in players])
 
     convo = Conversation.new_conversation(event_store, players, n_rounds)
     # Save conversation to session
@@ -68,16 +69,17 @@ def play_game():
 
     if convo.game_is_active():
         player, event, question = convo.get_next_question()
+        description = event.format_for_player(player)
         app.logger.info("Asking a question.")
         app.logger.info("Player %s, event %s, question %s" % (
-                player.name, event, question))
+                player.name, description, question))
 
         # Save conversation to session -- to advance to next question
         for k, v in convo.to_session_cookies().iteritems():
             session[k] = v
 
         return render_template("play.html", player_name=player.name,
-                               event=event, question=question,
+                               event=description, question=question,
                                next_button_text="Next",
                                next_button_target="/play")
     else:

@@ -16,6 +16,17 @@ Missing tests according to coverage calculation:
 '''
 
 
+class TestEventStore(object):
+    def test_empty_event_store(self):
+        events = []
+        es = EventStore(events)
+        assert es.events == []
+
+    def test_new_from_excel(self):
+        es = EventStore.load_from_excel("tests/gdrive_frozen_20172806.xlsx")
+        assert es.events
+
+
 class TestConversationWithSetup:
     '''
     Test Conversation class constructor.
