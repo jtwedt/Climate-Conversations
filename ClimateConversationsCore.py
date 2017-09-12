@@ -37,7 +37,11 @@ class EventStore(object):
 
             # Extract questions into a list
             keys = ['example question %d' % i for i in range(1, 4)]
-            questions = [row.get(k) for k in keys if row.get(k)]
+            # Collect all the text non-blank questions, excluding NaN and blank
+            # strings
+            questions = [row.get(k) for k in keys
+                         if type(row.get(k)) is unicode
+                         and row.get(k).strip()]
 
             # Build a date object from start year and start month, assume first
             # day of month and January if no month is specified
