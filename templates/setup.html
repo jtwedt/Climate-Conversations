@@ -15,16 +15,16 @@
 
     </script>
     <title>Climate Conversations</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main_blue.css') }}"/> 
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/setup.css') }}"/> 
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/main_blue.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/setup.css') }}"/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Sorts+Mill+Goudy">
-    
+
   </head>
- 
+
   <body>
 
     <h3>Get ready to travel through time...</h3>
-    <form class="form-addplayers" method="post" action="/setup/save">
+    <form class="form-addplayers" method="post" action="/setup">
     <div class="setup-form">
 
       <div class="player-entry">
@@ -32,12 +32,12 @@
 
         <div class="container">
           <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name_p1" id="name_p1" class="freeform-oneline"
+          <span> <input name="player_name" id="name_p1" class="freeform-oneline"
                  placeholder="" required autofocus> </span>
         </div>
         <div class="container">
           <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear_p1" name="birthyear_p1" class="freeform-oneline"></span>
+          <span> <input id="birthyear_p1" name="player_birthyear" class="freeform-oneline"></span>
         </div>
       </div>
 
@@ -46,12 +46,12 @@
 
         <div class="container">
           <label for="inputName" class="sr-only">Name</label>
-          <span> <input name="name-p2" id="name-p2" class="freeform-oneline"
+          <span> <input name="player_name" id="name-p2" class="freeform-oneline"
                  placeholder="" autofocus> </span>
         </div>
         <div class="container">
           <label for="inputBirthyear" class="sr-only">Year you were born</label>
-          <span> <input id="birthyear-p2" name="birthyear-p2" class="freeform-oneline"></span>
+          <span> <input id="player_birthyear" name="player_birthyear" class="freeform-oneline"></span>
         </div>
       </div>
 

@@ -1,91 +1,95 @@
-import sys
-import pandas as pd
-import os
-import numpy as np
-from random import randint
 import datetime
+import calendar
 import math
+import pandas as pd
+import random
+import sys
 
 
 reload(sys)
 sys.setdefaultencoding('utf8')
 
 
-class Conversation():
+class EventStore(object):
+    """
+    EventStore is an immutable ordered set of Events
+    Conversations refer to events by index
+    """
 
-    def __init__(self,
-                 n_rounds=5,
-                 events_file=None,
-                 gdrive_key=None,
-                 general_q_file="data/general_questions.txt",
-                 players=None,
-                 min_q_age=10):
-        self.n_rounds = n_rounds
-        """Total number of rounds to be played during the game. This should not
-        typically be changed during the game (see `rounds_left` instead)."""
-        self.rounds_left = n_rounds
-        """Number of rounds remaining in the game. Initially equal to
-        `n_rounds`; depletes to 0 as the game goes on."""
-        self.asked_events = []
-        """List of indices of events that have already been played."""
-        self.current_player_idx = 0
-        """Index of the current player in the game. Note that this index is
-        specific to the list of players, not the players themselves, so if a
-        player is removed from the game, the indices will change relative to
-        that removal."""
+    # Minimum player age we will ask events about
+    minimum_age = 7
 
-        if gdrive_key:
-            self.events = self.load_events_from_gdrive(gdrive_key)
-        elif events_file:
-            self.events = self.load_events_from_excel(events_file)
-        else:
-            raise ValueError("Error: need to specify an events file "
-                             "(google drive or local spreadsheet).")
-        self.remaining_events = list(self.events.index)
-        """List of indices of remaining events. Intially populated with all
-        indices in the events database."""
+    class Event(object):
+        def __init__(self, description, questions,
+                     start=None, additional_info=None):
+            self.description = description
+            self.questions = questions
+            self.start = start
+            self.additional_info = additional_info
 
-        self.n_events = len(self.events['description'])
-        """Total number of events in the original events database."""
-        if players is not None:
-            self.players = players
-            """List of Player objects representing people playing the game."""
-            self.n_players = len(self.players)
-            """Number of players currently in the game."""
+        @classmethod
+        def new_from_csv_row(cls, row):
+            """
+            Event factory from a dict representing a row from the CSV database
+            """
+            description = row.get('description')
+            additional_info = row.get('additional description')
 
-        self.min_q_age = min_q_age
-        """\"You must be this tall to ride this ride.\" -- Players won't be
-        asked questions about events that happened before they are this old."""
-        self.gen_questions = list(pd.read_table(general_q_file, comment="#",
-                                                header=None)[0])
-        """List of general questions that could be asked in the context of any
-        event."""
-        self.q_colnames = self._find_question_cols()
-        """List of column names that contain questions,
-        e.g. \"example question 1\"."""
-        self.active_game = True
-        """Value is False when there are no more valid questions for the
-        players or there are no more rounds."""
-        self.current_e_idx = None
+            # Extract questions into a list
+            keys = ['example question %d' % i for i in range(1, 4)]
+            # Collect all the text non-blank questions, excluding NaN and blank
+            # strings
+            questions = [row.get(k) for k in keys
+                         if type(row.get(k)) is unicode
+                         and row.get(k).strip()]
 
-    def load_events_from_excel(self, events_file):
-        '''
-        Load event spreadsheet from an excel file.
+            # Build a date object from start year and start month, assume first
+            # day of month and January if no month is specified
+            # Ideally we would move to using YYYY-MM-DD dates
+            start_year = row.get('start year')
+            start_month = row.get('start month', 'January')
+            start_month_number = cls._month_name_to_number.get(start_month, 1)
+            start = datetime.date(start_year, start_month_number, 1)
 
-        ## TODO write expected format here
+            return cls(description, questions,
+                       start=start, additional_info=additional_info)
+        # Lookup table for parsing month names
+        _month_name_to_number = {v: k for k, v in
+                                 enumerate(calendar.month_name)}
 
-        **Input**: filename of excel spreadsheet
+        def format_for_player(self, player):
+            age = player.get_age_in_year(self.start.year)
+            description = ("In the year {name} turned {age}, "
+                           "{event}").format(name=player.name,
+                                             age=age,
+                                             event=self.description)
 
-        **Output**: dataframe of events
-        '''
-        xlsx = pd.ExcelFile(events_file, header=2)
-        events = xlsx.parse(xlsx.sheet_names[0], header=1)
-        events['asked'] = ""
-        return events
+            return description
 
-    def load_events_from_gdrive(self, gdrive_key):
-        '''
-        Load event spreadsheet directly from google drive.
+        def get_question(self, q_idx):
+            return self.questions[q_idx]
+
+    def __init__(self, events):
+        self.events = events
+
+    def pick_for_player(self, player):
+        """
+        Returns a event index and event tuple appropriate for the given player
+        """
+        cutoff_year = player.birth_year + self.minimum_age
+
+        events = [(i, e) for i, e in enumerate(self.events)
+                  if e.start.year >= cutoff_year]
+
+        return random.choice(events)
+
+    def get_event(self, e_idx):
+        return self.events[e_idx]
+
+    @classmethod
+    def load_from_gdrive(cls, gdrive_key):
+        """
+        EventStore factory which loads events from Google Drive
 
         ## TODO document expected format here
 
@@ -102,267 +106,155 @@ class Conversation():
 
           You can get this via the "Share" button -> "get shareable link"
             in Google sheets.
-        '''
-        gdrive_url = "https://docs.google.com/spreadsheet/ccc?key=" + \
-                     gdrive_key + "&output=csv"
+        """
+        gdrive_url = ("https://docs.google.com/spreadsheet/ccc?key={}"
+                      "&output=csv").format(gdrive_key)
 
         # header keeps changing
-        events = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1)
-        events['asked'] = ""
-        return events
+        events_df = pd.read_csv(gdrive_url, encoding='utf-8', skiprows=1)
 
-    def _find_question_cols(self):
+        return cls._import_pandas_dataframe(events_df)
+
+    @classmethod
+    def load_from_excel(cls, events_file):
         """
-        Search the events database column names for the question columns.
-        This function will change as the events database evolves.
-
-        **Returns:** list of column names of questions in `self.events`
+        EventStore factory which loads events from a local Excel file
         """
-        assert self.events is not None
-        columns = self.events.columns
-        q_cols = [c for c in columns if "question" in c]
-        if len(q_cols) == 0:
-            q_cols = None
-        return q_cols
+        xlsx = pd.ExcelFile(events_file, header=2)
+        events_df = xlsx.parse(xlsx.sheet_names[0], header=1)
 
-    def game_is_active(self):
+        return cls._import_pandas_dataframe(events_df)
+
+    @classmethod
+    def _import_pandas_dataframe(cls, dataframe):
         """
-        Call this function to check if the game can still be played.
-
-        The variable `game_is_active` will be set to False when there are no
-        more valid questions for the players or there are no more rounds.
+        Convert pandas data frame into a list of Event objects
         """
-        return self.active_game
+        column_names = list(dataframe.columns)
+        events = []
+        for i in range(len(dataframe[column_names[0]])):
+            event_dict = {c: dataframe[c][i] for c in column_names}
 
-    def event_is_active(self):
-        """
-        Call this function to check if the current player has an active event.
-        This will return True as long as the last call to get a question
-        actually returned a question.
+            event = cls.Event.new_from_csv_row(event_dict)
+            events.append(event)
 
-        This does not guarantee that another question exists. This just tells
-        us that it is okay to ask the game for a question, otherwise, we need
-        to get a new player and a new event.
-        """
-        return self.current_e_idx is not None
-
-    def add_player(self, player):
-        for p in self.players:
-            if p.name == player.name and p.birth_year == player.birth_year:
-                return False
-        self.players.append(player)
-        self.n_players += 1
-        return True
-
-    def remove_player(self, player_name, player_birthyear):
-        for player in self.players:
-            if player_name == player.name and \
-                    player_birthyear == player.birth_year:
-                self.players.remove(player)
-                self.n_players -= 1
-                self.current_player_idx -= 1
-                return True
-        return False
-
-    def get_current_player(self):
-        if self.n_players == 0 or self.rounds_left <= 0 or \
-                self.current_player_idx >= self.n_players:
-            return None
-        else:
-            return self.players[self.current_player_idx]
-
-    def get_next_event(self, player):
-        if player is None:
-            return None, None
-
-        # Randomly choose an event, but make sure:
-        #   a) we haven't already discussed the event in this game
-        #   b) the date of the event makes sense given their age
-        e_idx = randint(0, self.n_events-1)
-        min_year = player.birth_year + self.min_q_age
-
-        valid_events_by_birthyear = self.events[self.events['start year'] >
-                                                min_year].index
-        valid_events = valid_events_by_birthyear.intersection(
-                self.remaining_events)
-
-        if len(valid_events) == 0:
-            return None, None
-
-        e_idx = int(np.random.choice(valid_events))
-
-        player.asked_events.append(e_idx)
-        self.asked_events.append(e_idx)
-        self.remaining_events.remove(e_idx)
-
-        e_desc = self.events['description'][e_idx]
-        e_desc = e_desc.encode('utf-8').strip()
-        e_age = player.get_age_in_year(int(self.events['start year'][e_idx]))
-
-        # Return formatted string
-        e = "In the year %s turned %d, %s" % (player.name, e_age, e_desc)
-        self.current_e_idx = e_idx
-        self.current_event = e
-        return e_idx, e
-
-    ''' Randomly select a general question from the list.
-    Input: e_year [None, year]
-        if e_year is None: get any random string that does NOT require a year
-    Output: str
-        The string question, possibly containing the input year.
-    '''
-    def choose_general_question(self, e_year=None):
-        if e_year is None:
-            raise NotImplementedError
-        else:
-            q_idx = randint(0, len(self.gen_questions)-1)
-            q = self.gen_questions[q_idx]
-            if "%d" in q:
-                q = q % e_year
-            return q
-
-    def get_question(self, e_idx):
-        """
-        Retrieve the next question for the specified event, or return None if
-        no question exists or is left. If no questions are left, then this
-        function also sets the `current_e_idx` to None so we know that we need
-        to choose a new event.
-
-        **Input:** `e_idx`, the index of the desired event
-
-        **Output:** The question formatted as a string.
-
-        Note that question formatting (i.e. with a year/age) is currently not
-        supported.  """
-        if type(e_idx) is not int or e_idx < 0 or e_idx > self.n_events:
-            return None
-
-        e_year = self.events['start year'][e_idx]
-
-        # If we have just one question column, assume it's the old db
-        # aka get a random question
-        if len(self.q_colnames) == 1:
-            q = self.choose_general_question(e_year)
-            return q
-
-        # Otherwise, if we have more than 1 question column, assume it's the
-        # database with 3 questions.
-        else:
-            for colname in self.q_colnames:
-                q = self.events[colname][e_idx]
-                if colname in list(self.events['asked'])[e_idx]:
-                    continue
-                else:
-                    self.events.loc[e_idx, 'asked'] = \
-                        self.events.loc[e_idx, 'asked'] + colname
-                    return q
-
-            self.current_e_idx = None
-            return None
-
-            # q1 = self.events["example question 1"][e_idx]
-            # q2 = self.events["example question 2"][e_idx]
-            # q3 = self.events["example question 3"][e_idx]
-
-            # if q1.contains("asked"):
-            #     #
-            # else:
-            #     self.events["example question 1"][e_idx] = "asked"
-            #     q = q1
-
-            # q = "<p>%s</p><br/><p>%s</p><br/><p>%s</p>" % (q1, q2, q3)
-
-        # return q
-
-    def check_for_extra_info(self, e_idx):
-        try:
-            q_info = self.events['additional description'][e_idx]
-            if len(q_info) > 0:
-                return q_info
-            else:
-                return None
-        except:
-            return None
-
-    def check_for_image(self, e_idx):
-        try:
-            img_file = self.events['image filename'][e_idx]
-            if os.path.isfile(img_file):
-                return img_file
-            else:
-                return None
-        except:
-            return None
-
-    def increment_player(self):
-        """
-        Updates `self.current_player_idx` if there are players left in the
-        current round or there are more rounds to play.
-
-        If there are no more rounds, set the `game_is_active` variable to False
-        indicating that the game is over and return False.
-        """
-        p_idx = self.current_player_idx + 1
-        # If we have not reached the end of the round, move to the next player
-        # index
-        if p_idx < self.n_players:
-            self.current_player_idx = p_idx
-            p = self.get_current_player()
-        # If we have reached the end of the round, check if there are more
-        # rounds
-        elif p_idx >= self.n_players:
-            # If there are more rounds to play, start from 1st player &
-            # decrement the rounds left
-            if self.rounds_left:
-                self.rounds_left -= 1
-                self.current_player_idx = 0
-                p = self.get_current_player()
-            # If there are no more rounds to play, we cannot increment the
-            # player
-            else:
-                self.active_game = False
-                self.current_player_idx = None
-                return None
-        if p:
-            return p
-        else:
-            self.active_game = False
-            self.current_player_idx = None
-            return None
-
-    def restart_game(self, repeats_allowed=True):
-        """
-        Reset the game
-        **Input**:
-        """
-        # Reset number of rounds and possibly Q's that have already been asked
-        self.rounds_left = self.n_rounds
-        self.active_game = True
-        if repeats_allowed:
-            self.asked_events = []
-            self.remaining_events = list(self.events.index)
-            for player in self.players:
-                player.asked_events = []
+        return cls(events)
 
 
-class Player():
-    name = ""
-    birth_year = ""
-    asked_events = []
-
+class Player(object):
     def __init__(self, name, birth_year):
         self.name = name
-        self.birth_year = birth_year
+        self.birth_year = int(birth_year)
+
+    def __str__(self):
+        return "{} (b: {!s})".format(self.name, self.birth_year)
+
+    def get_age_in_year(self, year):
+        return year - self.birth_year
 
     def get_current_age(self):
         current_year = datetime.datetime.now().year
         return math.floor(current_year - self.birth_year)
 
-    def get_age_in_year(self, year):
-        return year - self.birth_year
 
-    def already_asked(self, event_i):
-        return event_i in self.asked_events
+class Conversation(object):
+    """
+    Represents a single game instance
+    Can be serialized and deserialized from session cookies
+    """
+    def __init__(self, event_store, players, questions):
+        # The event store object
+        self.event_store = event_store
+        # A list of players in this game
+        self.players = players
+        # A list of tuples indicating the player index, event index and
+        # question index of remaining questions in this game
+        self.questions = questions
 
-    def __str__(self):
-        return self.name + " (b: " + str(self.birth_year) + ")"
+    def to_session_cookies(self):
+        return {
+            'convo_players': [(p.name, p.birth_year) for p in self.players],
+            'convo_questions': self.questions
+        }
+
+    @staticmethod
+    def session_cookie_keys():
+        """
+        Returns a list of session cookie keys used to store a
+        conversation, used to logout/end current game
+        """
+        return ['convo_players', 'convo_questions']
+
+    @classmethod
+    def load_from_session(cls, event_store, session):
+        player_tuples = session.get('convo_players')
+        players = [Player(p[0], p[1]) for p in player_tuples]
+        questions = session.get('convo_questions')
+
+        return cls(event_store, players, questions)
+
+    @classmethod
+    def new_conversation(cls, event_store, players, rounds):
+        """
+        Assign questions to players for all rounds
+        """
+
+        # List of 3-tuples representing player index, event index and
+        # question index for each question in the game
+        questions = list()
+
+        # Set of event indexes which we have used
+        used_events = set()
+
+        player_questions = dict()
+
+        # Assign events to players from youngest to oldest so we don't run
+        # out of events for the younger players
+        for p_idx, p in sorted(enumerate(players), reverse=True,
+                               key=lambda p: p[1].birth_year):
+            player_questions[p_idx] = list()
+            retries = 0
+            while len(player_questions[p_idx]) < rounds and retries < 10:
+                try:
+                    e_idx, e = event_store.pick_for_player(p)
+
+                    if e_idx not in used_events:
+                        p_questions = [(p_idx, e_idx, q_idx) for q_idx, q
+                                       in enumerate(e.questions)]
+                        player_questions[p_idx].append(p_questions)
+                        used_events.add(e_idx)
+                    else:
+                        retries += 1
+                except IndexError:
+                    retries += 1
+
+        for r_idx in range(rounds):
+            for p_idx, p in enumerate(players):
+                q = player_questions[p_idx].pop(0)
+                questions.extend(q)
+
+        return cls(event_store, players, questions)
+
+    def game_is_active(self):
+        return self.questions != []
+
+    def get_next_question(self):
+        if not self.questions:
+            return
+
+        q_tuple = self.questions.pop(0)
+        p_idx, e_idx, q_idx = q_tuple
+
+        player = self.players[p_idx]
+
+        event = self.event_store.get_event(e_idx)
+
+        # XXX(dlundquist): completely violating principle of encapsulation
+        # by reaching into EventStore (above) and Event classes. This will
+        # be easier to fix once events or more normalized
+
+        # A design decision should be made on return value of this
+        # function, do we return Player, Event and Question?!? objects or
+        # strings of Player name, event description and question?
+
+        return player, event, event.get_question(q_idx)
