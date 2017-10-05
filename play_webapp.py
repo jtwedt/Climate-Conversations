@@ -39,25 +39,32 @@ def save_game_setup():
 
     form_data = request.form
 
-    n_rounds = int(form_data.get("num_rounds"))
-    app.logger.info("Saved n_rounds: %d" % n_rounds)
+    try:
+        n_rounds = int(form_data.get("num_rounds"))
+        app.logger.info("Saved n_rounds: %d" % n_rounds)
 
-    # By using multiple form input fields with the same name we can use
-    # getlist() to load a list of names and birth years. This allows processing
-    # a form with an arbirary number of player.
-    names_and_birthyears = zip(form_data.getlist('player_name'),
-                               form_data.getlist('player_birthyear'))
-    # TODO(dlundquist): handle bad player data
-    players = [Player(n, y) for n, y in names_and_birthyears]
+        # By using multiple form input fields with the same name we can use
+        # getlist() to load a list of names and birth years. This allows
+        # processing a form with an arbitrary number of player.
+        names_and_birthyears = zip(form_data.getlist('player_name'),
+                                   form_data.getlist('player_birthyear'))
+        app.logger.debug(names_and_birthyears)
+        # TODO(dlundquist): handle bad player data
+        players = [Player(n, y) for n, y in names_and_birthyears if n]
 
-    app.logger.info("Added players: %s" % [str(p) for p in players])
+        app.logger.info("Added players: %s" % [str(p) for p in players])
 
-    convo = Conversation.new_conversation(event_store, players, n_rounds)
-    # Save conversation to session
-    for k, v in convo.to_session_cookies().iteritems():
-        session[k] = v
+        convo = Conversation.new_conversation(event_store, players, n_rounds)
+        # Save conversation to session
+        for k, v in convo.to_session_cookies().iteritems():
+            session[k] = v
 
-    return redirect("/play", code=302)
+        return redirect("/play", code=302)
+    except ValueError as e:
+        app.logger.error(e, exc_info=True)
+        return render_template("setup.html",
+                               notice=("There was a problem with your input: "
+                                       "%s" % e))
 
 
 @app.route("/play")
@@ -65,7 +72,13 @@ def play_game():
     global events_store
 
     # Load conversation
-    convo = Conversation.load_from_session(event_store, session)
+    try:
+        convo = Conversation.load_from_session(event_store, session)
+    except ValueError as e:
+        app.logger.error(e, exc_info=True)
+        return render_template("setup.html",
+                               notice=("There was a problem loading your game "
+                                       "state: %s" % e))
 
     if convo.game_is_active():
         player, event, question = convo.get_next_question()
