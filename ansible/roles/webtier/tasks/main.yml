@@ -49,14 +49,6 @@
   pip: requirements={{ app_path }}/requirements.txt
        virtualenv={{ app_path }}/.venv
 
-- name: Ensure uwsgi is installed
-  pip: name=uwsgi
-       virtualenv={{ app_path }}/.venv
-
-- name: Ensure wsgi wrapper is present
-  copy: src=wsgi.py
-        dest={{ app_path }}/wsgi.py
-
 - name: Ensure uwsgi application configuraton exists
   template: src=uwsgi.ini
             dest={{ app_path }}/uwsgi.ini
