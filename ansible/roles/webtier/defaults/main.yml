@@ -1,0 +1,8 @@
+---
+admin_group: cc-admin
+app_name: climateconversations
+app_path: /srv/climateconversations.org
+sitenames:
+- climateconversations.org
+- www.climateconversations.org
+uwsgi_processes: 5
