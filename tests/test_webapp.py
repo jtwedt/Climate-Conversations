@@ -46,6 +46,14 @@ class TestApp(TestCase):
             ), follow_redirects=True)
         return response
 
+    def post_setup_form_2players(self):
+        response = self.client.post("/setup", data=dict(
+            player_name=["Player 1", "Player 2"],
+            player_birthyear=['1980' '1974'],
+            num_rounds=2,
+            ), follow_redirects=True)
+        return response
+
     def post_empty_setup_form(self):
         response = self.client.post("/setup", data=dict(
             player_name='',
@@ -59,10 +67,10 @@ class TestApp(TestCase):
         self.assert_template_used('play.html')
         assert response.status_code == 200
 
-#    def test_assert_setup_save_no_redirect(self):
-#        response = self.post_empty_setup_form()
-#        self.assert_template_used('setup.html')
-#        assert response.status_code == 200
+    def test_assert_setup_save_no_redirect(self):
+        response = self.post_empty_setup_form()
+        self.assert_template_used('setup.html')
+        assert response.status_code == 200
 
 #    def test_assert_play_game_uninitiated(self):
 #        response = self.client.get("/play")

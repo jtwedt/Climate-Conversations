@@ -8,6 +8,16 @@ div.player-entry {
     /*float: left;*/
 }
 
+div.notice {
+    background-color: white;
+    padding-left: 3vw;
+    padding-right: 3vw;
+    padding-top: 1px;
+    padding-bottom: 10px;
+    margin: 10px 10px 10px 15px;
+}
+
+
 div.container {
     display: table;
     width: 100%;

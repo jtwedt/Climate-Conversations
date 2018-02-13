@@ -143,8 +143,14 @@ class EventStore(object):
 
 class Player(object):
     def __init__(self, name, birth_year):
-        self.name = name
+        self.name = name.strip()
+        if not self.name:
+            raise ValueError("Player doesn't have a name")
         self.birth_year = int(birth_year)
+        if (self.birth_year < 1850 or
+                self.birth_year > datetime.datetime.now().year):
+            raise ValueError("{}'s year of birth does not seem "
+                             "plausible".format(self.name))
 
     def __str__(self):
         return "{} (b: {!s})".format(self.name, self.birth_year)
@@ -188,8 +194,12 @@ class Conversation(object):
     @classmethod
     def load_from_session(cls, event_store, session):
         player_tuples = session.get('convo_players')
+        if not player_tuples:
+            raise ValueError("No game in progress found")
         players = [Player(p[0], p[1]) for p in player_tuples]
         questions = session.get('convo_questions')
+        if not questions:
+            raise ValueError("No game in progress found")
 
         return cls(event_store, players, questions)
 
