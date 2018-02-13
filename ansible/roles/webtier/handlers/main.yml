@@ -1,0 +1,8 @@
+---
+- name: reload uwsgi service
+  service: name={{ app_name }}
+           state=reloaded
+
+- name: reload nginx service
+  service: name=nginx
+           state=reloaded

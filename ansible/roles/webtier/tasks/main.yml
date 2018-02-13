@@ -1,0 +1,85 @@
+---
+- name: Ensure git and Python are installed
+  apt: pkg={{ item }}
+  with_items:
+  - git
+  - python
+  - python-dev
+  - python-pip
+
+- name: Ensure virtualenv installed
+  pip: name=virtualenv
+
+- name: Ensure {{ admin_group }} group exists
+  group: name={{ admin_group }}
+
+- name: Ensure {{ app_name }} application directory exists
+  file: path={{ app_path }}
+        state=directory
+        mode=2775
+        group={{ admin_group }}
+
+- name: Ensure extended ACL is setup so directories remain group writeable
+  acl: path={{ app_path }}
+       default=yes
+       etype=group
+       permissions=rwx
+       state=present
+
+- name: Ensure {{ app_name }} application is checked out via git
+  git: repo='https://github.com/jtwedt/Climate-Conversations.git'
+       dest={{ app_path }}
+       umask=0002
+       update=no
+
+- name: Ensure {{ app_name }} application is updated
+  git: repo='https://github.com/jtwedt/Climate-Conversations.git'
+       dest={{ app_path }}
+       update=yes
+  notify: reload uwsgi service
+
+- name: Ensure {{ app_name }} app run directory exists for unix socket
+  file: path={{ app_path }}/run
+        state=directory
+        mode=0775
+        owner=www-data
+        group={{ admin_group }}
+
+- name: Ensure Climate-Conversations requirements are installed
+  pip: requirements={{ app_path }}/requirements.txt
+       virtualenv={{ app_path }}/.venv
+
+- name: Ensure uwsgi application configuraton exists
+  template: src=uwsgi.ini
+            dest={{ app_path }}/uwsgi.ini
+  notify: reload uwsgi service
+
+- name: Ensure {{ app_name }} uwsgi service exists
+  template: src=uwsgi.service
+            dest=/etc/systemd/system/{{ app_name }}.service
+
+- name: Ensure {{ app_name }} uwsgi service is enabled
+  systemd: daemon_reload=yes
+           name={{ app_name }}.service
+           enabled=yes
+
+- name: Ensure {{ app_name }} uwsgi service is started
+  systemd: name={{ app_name }}.service
+           state=started
+
+- name: Ensure Nginx installed
+  apt: pkg=nginx
+
+- name: Ensure site nginx configuration exists
+  template: src=nginx.conf
+            dest=/etc/nginx/sites-available/{{ app_name }}.conf
+  notify: reload nginx service
+
+- name: Ensure site is enabled in Nginx
+  file: src=/etc/nginx/sites-available/{{ app_name }}.conf
+        dest=/etc/nginx/sites-enabled/{{ app_name }}.conf
+        state=link
+
+- name: Ensure Nginx is started
+  service: name=nginx
+           state=started

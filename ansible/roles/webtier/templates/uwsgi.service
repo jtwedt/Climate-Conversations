@@ -1,0 +1,14 @@
+[Unit]
+Description=uWSGI instance to serve {{ app_name }}
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory={{ app_path }}
+Environment="PATH={{ app_path }}/.venv/bin"
+ExecStart={{ app_path }}/.venv/bin/uwsgi --ini uwsgi.ini
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
