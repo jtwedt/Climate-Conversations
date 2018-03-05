@@ -198,7 +198,7 @@ class Conversation(object):
             raise ValueError("No game in progress found")
         players = [Player(p[0], p[1]) for p in player_tuples]
         questions = session.get('convo_questions')
-        if not questions:
+        if questions is None:
             raise ValueError("No game in progress found")
 
         return cls(event_store, players, questions)
@@ -246,7 +246,7 @@ class Conversation(object):
         return cls(event_store, players, questions)
 
     def game_is_active(self):
-        return self.questions != []
+        return bool(self.questions)
 
     def get_next_question(self):
         if not self.questions:
